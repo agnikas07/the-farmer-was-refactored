@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>TheFarmerWasRefactored</AssemblyName>
+    <RootNamespace>TheFarmerWasRefactored</RootNamespace>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <GameDirectory Condition="'$(GameDirectory)' == ''">$(MSBuildThisFileDirectory)../../.tools/game</GameDirectory>
+    <BepInExDirectory Condition="'$(BepInExDirectory)' == ''">$(GameDirectory)/BepInEx</BepInExDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExDirectory)/core/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="CheckGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(BepInExDirectory)/core/BepInEx.dll')" Text="BepInEx is missing. Prepare the local development game or set BepInExDirectory." />
+    <Error Condition="!Exists('$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.CoreModule.dll')" Text="Game references are missing. Set GameDirectory to your local game copy." />
+  </Target>
+</Project>

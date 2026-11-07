@@ -1,4 +1,6 @@
-# First milestone: a plugin that loads
+# First milestone: a plugin that loads — verified
+
+Completed on 2026-11-07. The user launched the isolated game on CachyOS/Proton; the BepInEx log confirms plugin startup and chainloader completion. See [environment details](environment.md).
 
 1. Locate the installed game and record its version, Unity backend, and managed runtime.
 2. Select the matching BepInEx build and plugin target framework.
