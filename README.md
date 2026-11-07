@@ -4,9 +4,9 @@ A planned TypeScript language-system overhaul for **The Farmer Was Replaced**, i
 
 ## Status
 
-Initial development setup. No playable mod is available yet.
+The startup plugin loads successfully in the isolated development game. TypeScript execution and editor integration are not implemented yet.
 
-Development takes place on CachyOS Linux. Windows, Linux, and macOS are intended targets; compatibility has not yet been verified.
+Startup has been verified on CachyOS Linux using the Windows game through Proton. Windows and macOS are intended targets but have not been tested.
 
 ## Development
 
@@ -15,7 +15,9 @@ Development takes place on CachyOS Linux. Windows, Linux, and macOS are intended
 - Run `source scripts/dev-env.sh` from the repository root to expose the local SDK in your shell.
 - Run `dotnet --info` to verify the SDK.
 
-The plugin target framework and BepInEx version will be selected after inspecting the installed game. The SDK version is not the plugin runtime requirement.
+The plugin targets .NET Standard 2.1 and BepInEx 5.4.23.6. The SDK version is not the plugin runtime requirement.
+
+See [the development guide](docs/development.md) for setup, building, launching, and checking the startup log.
 
 ## Structure
 
