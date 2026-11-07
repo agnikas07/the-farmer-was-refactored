@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Exercise the exact staged netstandard assemblies, not NuGet's net10 assets. -->
+    <Reference Include="../../artifacts/plugin/*.dll" />
+  </ItemGroup>
+</Project>

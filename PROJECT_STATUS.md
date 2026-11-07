@@ -18,8 +18,8 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 - Startup milestone complete: C# plugin `0.1.0` loads through BepInEx in the isolated development game.
 - [PR #1: startup plugin and development workflow](https://github.com/agnikas07/the-farmer-was-refactored/pull/1) merged on 2026-11-07. It contained 189 additions and 4 deletions.
-- No TypeScript compiler, JavaScript runtime, game-action bindings, editor replacement, or documentation replacement is implemented yet.
-- `src/Runtime`, `src/Compiler`, `docs/in-game`, `examples`, `tests`, and `packaging` are placeholders.
+- A Jint 4.17.0 feasibility probe is implemented on `feat/javascript-runtime-probe`: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. Unity/Mono testing is pending. No player-facing runtime, TypeScript compiler, game-action bindings, editor replacement, or documentation replacement exists yet.
+- `src/Compiler`, `docs/in-game`, `examples`, and `packaging` are placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
 - No public playable release or Thunderstore package exists.
 - Windows and macOS testing is pending. Current validation proves startup only.
 
@@ -36,7 +36,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 ### Proposed, not yet selected or proven
 
-- Jint is the first runtime candidate, not a committed dependency.
+- Jint 4.17.0 is pinned for the feasibility probe, not yet selected as the production runtime.
 - Compiler hosting/bundling is undecided. Prefer a release that does not require players to install Node.js separately.
 - Synchronous-looking farm commands, global beginner API, shared API metadata for declarations/docs, and compiler instrumentation are design proposals.
 - Exact API names, module model, execution scheduler, computation tick accounting, and drone state transfer remain undecided.
@@ -85,7 +85,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 
 ## Next work, in small increments
 
-1. Runtime feasibility spike: evaluate Jint against the game's managed runtime. Establish compatibility, execution of a trivial script, a host logging callback, and bounded termination of a computation-only loop. Keep it separate from editor changes.
+1. Run the opt-in runtime probe inside Unity/Mono and inspect its fresh log. Desktop checks pass; game compatibility remains pending. See [probe instructions](docs/design/runtime-probe.md).
 2. Prove an execution approach for pause/resume, stepping, simulation timing, and main-thread-safe game actions before committing to a runtime architecture. Investigate drone isolation and source mapping as explicit requirements.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
@@ -119,4 +119,6 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 ## Handoff history
 
 - 2026-11-07: Repository and local toolchain established. Startup plugin verified on CachyOS/Proton; PR #1 merged.
-- 2026-11-07: Added this handoff record at the user's request. Current change is documentation only on `docs/project-handoff`; implementation remains at the startup milestone. Check GitHub for this branch's latest PR state.
+- 2026-11-07: Added this handoff record at the user's request. PR #2 merged; the status file is now part of the handoff workflow.
+
+- 2026-11-07: Runtime feasibility change on `feat/javascript-runtime-probe`. Desktop checks pass using the staged netstandard DLLs; opt-in game validation remains pending. Check GitHub for the current PR state.
