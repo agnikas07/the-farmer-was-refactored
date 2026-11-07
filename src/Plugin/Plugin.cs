@@ -17,6 +17,7 @@ namespace TheFarmerWasRefactored
         public const string Version = "0.1.0";
 
         private CancellationTokenSource steppingStop;
+        private DispatchProbe dispatchProbe;
 
         private void Awake()
         {
@@ -31,6 +32,15 @@ namespace TheFarmerWasRefactored
             if (Config.Bind("Diagnostics", "RunSteppingProbe", false,
                 "Run background pause/resume diagnostics. Development only.").Value)
                 StartCoroutine(RunSteppingProbe());
+            if (Config.Bind("Diagnostics", "RunDispatchProbe", false,
+                "Test worker-to-main-thread request dispatch. Development only.").Value)
+            {
+                dispatchProbe = new DispatchProbe(message => Logger.LogInfo(message), value =>
+                {
+                    _ = Time.frameCount; // Exercise a read-only Unity API on the owner thread.
+                    return value + 1;
+                });
+            }
         }
 
         private IEnumerator RunSteppingProbe()
@@ -50,8 +60,22 @@ namespace TheFarmerWasRefactored
             steppingStop = null;
         }
 
+        private void Update()
+        {
+            if (dispatchProbe == null) return;
+            try
+            {
+                dispatchProbe.Tick();
+                if (!dispatchProbe.IsCompleted) return;
+            }
+            catch (Exception error) { Logger.LogError($"Dispatch probe FAILED: {error}"); }
+            dispatchProbe.Dispose();
+            dispatchProbe = null;
+        }
+
         private void OnDestroy()
         {
+            dispatchProbe?.Dispose();
             try { steppingStop?.Cancel(); }
             catch (ObjectDisposedException) { } // The completion continuation won the race.
         }
