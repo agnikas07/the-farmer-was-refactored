@@ -18,7 +18,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 - Startup milestone complete: C# plugin `0.1.0` loads through BepInEx in the isolated development game.
 - [PR #1: startup plugin and development workflow](https://github.com/agnikas07/the-farmer-was-refactored/pull/1) merged on 2026-11-07. It contained 189 additions and 4 deletions.
-- A Jint 4.17.0 feasibility probe is implemented on `feat/javascript-runtime-probe`: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). No player-facing runtime, TypeScript compiler, game-action bindings, editor replacement, or documentation replacement exists yet.
+- The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). No player-facing runtime, TypeScript compiler, game-action bindings, editor replacement, or documentation replacement exists yet.
 - `src/Compiler`, `docs/in-game`, `examples`, and `packaging` are placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
 - No public playable release or Thunderstore package exists.
 - Windows and macOS testing is pending. Current validation covers startup and the bounded runtime probe only.
@@ -87,7 +87,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 
 ## Next work, in small increments
 
-1. Review and merge [PR #3](https://github.com/agnikas07/the-farmer-was-refactored/pull/3) when authorized. Desktop and in-game runtime checks pass; no further repeat of the unchanged probe is needed. See [probe instructions](docs/design/runtime-probe.md).
+1. Verify the opt-in stepping diagnostic in Unity/Mono. Desktop checks pass for source stepping, preserved variables, resume, pause-running/stop-paused, and stop-running. See [stepping probe instructions](docs/design/stepping-probe.md).
 2. Prove an execution approach for pause/resume, stepping, simulation timing, and main-thread-safe game actions before committing to a runtime architecture. Investigate drone isolation and source mapping as explicit requirements.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
@@ -123,4 +123,6 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - 2026-11-07: Repository and local toolchain established. Startup plugin verified on CachyOS/Proton; PR #1 merged.
 - 2026-11-07: Added this handoff record at the user's request. PR #2 merged; the status file is now part of the handoff workflow.
 
-- 2026-11-07: Runtime feasibility change on `feat/javascript-runtime-probe`. Desktop and Unity/Mono checks pass using the staged netstandard DLLs. PR #3 is ready for review, not merged. The local opt-in diagnostic has been disabled after verification. Check GitHub for current PR state.
+- 2026-11-07: Runtime feasibility change on `feat/javascript-runtime-probe`. Desktop and Unity/Mono checks pass using the staged netstandard DLLs. PR #3 merged. The local opt-in diagnostic has been disabled after verification. Check GitHub for current PR state.
+
+- 2026-11-07: `feat/runtime-stepping-probe` adds a diagnostic worker-thread checkpoint gate and nonblocking Unity polling. Desktop checks pass; game verification is pending. The local stepping diagnostic is enabled for the next launch. No game actions or tick scheduler are implemented.

@@ -10,7 +10,7 @@ Completed on 2026-11-07. The user launched the isolated game on CachyOS/Proton; 
 
 ## Following technical gate
 
-Evaluate an embedded JavaScript runtime (Jint is an initial candidate). Prove cancellation of computation-only loops, pause/resume, simulation timing, main-thread-safe actions, source mapping, and drone isolation before committing to the execution architecture.
+Jint evaluation/cancellation is verified in-game (PR #3). The [stepping probe](stepping-probe.md) passes on desktop and awaits game verification. Simulation timing, main-thread-safe actions, source mapping, and drone isolation remain open before committing to the execution architecture.
 
 Use the official TypeScript compiler with semantic checking. Prototype compiler hosting separately; players should not need a separate Node.js installation for the eventual release.
 
