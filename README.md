@@ -4,6 +4,8 @@ A planned TypeScript language-system overhaul for **The Farmer Was Replaced**, i
 
 ## Status
 
+Start with [PROJECT_STATUS.md](PROJECT_STATUS.md) for project decisions, progress, next steps, and the issue/fix log. New agents should also read [AGENTS.md](AGENTS.md).
+
 The startup plugin loads successfully in the isolated development game. TypeScript execution and editor integration are not implemented yet.
 
 Startup has been verified on CachyOS Linux using the Windows game through Proton. Windows and macOS are intended targets but have not been tested.
