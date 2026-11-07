@@ -32,7 +32,7 @@ rg 'Runtime probe' .tools/game/BepInEx/LogOutput.log
 
 All four checks and `Runtime probe: ALL PASS` must appear in the new log. A `FAILED` entry or absent marker requires investigation. The config defaults to false; turn it off after testing. The small diagnostic runs synchronously at startup and can delay startup up to its execution limits. It is not a player script runner.
 
-Desktop probe: passed on 2026-11-07. Unity/Mono probe: pending. The previous startup-only verification does not cover these new dependencies.
+Desktop and Unity/Mono probes passed on 2026-11-07. The user launched the isolated game on CachyOS/Proton; the agent confirmed all four PASS markers, `Runtime probe: ALL PASS`, and chainloader completion in the fresh on-disk log. Other operating systems and gameplay scheduling remain untested.
 
 ## Next gate
 
