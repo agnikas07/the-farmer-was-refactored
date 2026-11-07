@@ -17,7 +17,7 @@ The controller never reads Jint objects across threads. It receives copied sourc
 
 Handshakes and joins have two-second bounds; the whole diagnostic has a ten-second cancellation deadline. These bounds are diagnostic failure detection, not a production time-budget model. Blocking host/native operations cannot be forcibly interrupted by these cooperative controls.
 
-Run `bash scripts/test-runtime.sh` for both runtime and stepping diagnostics. The staged netstandard assemblies passed on desktop .NET on 2026-11-07. Unity/Mono validation is pending.
+Run `bash scripts/test-runtime.sh` for both runtime and stepping diagnostics. The staged netstandard assemblies passed on desktop .NET on 2026-11-07. The user also ran the isolated game on CachyOS/Proton on 2026-11-07. The screenshot and agent inspection of the fresh BepInEx log confirm all four checks and `Stepping probe: ALL PASS` under Unity/Mono. This verifies the diagnostic, not production scheduling or gameplay timing.
 
 ## In-game verification
 
