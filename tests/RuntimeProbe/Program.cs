@@ -4,6 +4,7 @@ using TheFarmerWasRefactored.Runtime;
 try
 {
     RuntimeProbe.Run(Console.WriteLine);
+    SteppingProbe.Run(Console.WriteLine);
     return 0;
 }
 catch (Exception error)
