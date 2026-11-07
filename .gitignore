@@ -1,0 +1,16 @@
+# Local tools, configuration, and game files
+.tools/
+work/
+local.env
+GameReferences/
+# Build outputs
+**/bin/
+**/obj/
+node_modules/
+dist/
+artifacts/
+# Editors and operating systems
+.vs/
+.idea/
+*.user
+.DS_Store

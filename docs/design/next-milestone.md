@@ -1,0 +1,15 @@
+# First milestone: a plugin that loads
+
+1. Locate the installed game and record its version, Unity backend, and managed runtime.
+2. Select the matching BepInEx build and plugin target framework.
+3. Back up saves and use an isolated development profile.
+4. Build a plugin that logs "The Farmer was Refactored loaded."
+5. Verify it in the actual game before implementing language integration.
+
+## Following technical gate
+
+Evaluate an embedded JavaScript runtime (Jint is an initial candidate). Prove cancellation of computation-only loops, pause/resume, simulation timing, main-thread-safe actions, source mapping, and drone isolation before committing to the execution architecture.
+
+Use the official TypeScript compiler with semantic checking. Prototype compiler hosting separately; players should not need a separate Node.js installation for the eventual release.
+
+Documentation replacement is part of the first playable slice, not a final polish task. Define computation costs explicitly; JavaScript operations do not automatically match the original interpreter's ticks.
