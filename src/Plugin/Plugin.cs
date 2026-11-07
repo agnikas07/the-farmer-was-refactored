@@ -1,4 +1,6 @@
+using System;
 using BepInEx;
+using TheFarmerWasRefactored.Runtime;
 using UnityEngine;
 
 namespace TheFarmerWasRefactored
@@ -14,6 +16,12 @@ namespace TheFarmerWasRefactored
         {
             Logger.LogInfo("The Farmer was Refactored loaded.");
             Logger.LogInfo($"Plugin {Version}; game {Application.version}; Unity {Application.unityVersion}; platform {Application.platform}.");
+            if (Config.Bind("Diagnostics", "RunRuntimeProbe", false,
+                "Run bounded JavaScript feasibility checks at startup. Development only.").Value)
+            {
+                try { RuntimeProbe.Run(message => Logger.LogInfo(message)); }
+                catch (Exception error) { Logger.LogError($"Runtime probe FAILED: {error}"); }
+            }
         }
     }
 }

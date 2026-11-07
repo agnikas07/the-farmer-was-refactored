@@ -5,11 +5,13 @@
     <RootNamespace>TheFarmerWasRefactored</RootNamespace>
     <Version>0.1.0</Version>
     <LangVersion>latest</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <GameDirectory Condition="'$(GameDirectory)' == ''">$(MSBuildThisFileDirectory)../../.tools/game</GameDirectory>
     <BepInExDirectory Condition="'$(BepInExDirectory)' == ''">$(GameDirectory)/BepInEx</BepInExDirectory>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Runtime/TheFarmerWasRefactored.Runtime.csproj" />
     <Reference Include="BepInEx">
       <HintPath>$(BepInExDirectory)/core/BepInEx.dll</HintPath>
       <Private>false</Private>
