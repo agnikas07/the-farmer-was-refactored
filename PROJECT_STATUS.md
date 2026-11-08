@@ -21,7 +21,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 - The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). No player-facing runtime, TypeScript compiler, game-action bindings, editor replacement, or documentation replacement exists yet.
 - `src/Compiler`, `docs/in-game`, `examples`, and `packaging` are placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
 - No public playable release or Thunderstore package exists.
-- Windows and macOS testing is pending. Current validation covers startup and bounded runtime, stepping, and dispatch diagnostics only.
+- Windows and macOS testing is pending. Current validation covers startup and bounded runtime, stepping, dispatch, and read-only simulation observation diagnostics only.
 
 ## Decisions and proposals
 
@@ -88,7 +88,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 ## Next work, in small increments
 
 1. Dispatch feasibility is verified in Unity/Mono and PR #5 is merged. JavaScript round-trip, host error propagation, and queued cancellation pass in-game; owner-thread and capacity guards also pass on desktop. See [dispatch instructions](docs/design/dispatch-probe.md).
-2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. A read-only simulation-thread/identity/timing probe is now implemented on `feat/simulation-observation-probe`; [manual validation](docs/design/simulation-probe.md) is pending before choosing an action adapter. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
+2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. A read-only simulation-thread/identity/timing probe is now implemented on `feat/simulation-observation-probe`; [manual validation](docs/design/simulation-probe.md) passed in Unity/Mono. Next, design a narrowly scoped action adapter that respects native simulation ownership and accounting. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
 5. Expand API, progression, modules, drones, and teaching material together; validate broader behavior and platforms before packaging a release.
@@ -131,4 +131,4 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 
 - 2026-11-07: PR #6 merged. `docs/game-action-integration` records build-specific Core.dll inspection, native action accounting, and thread/lock ownership. No gameplay code changed; extracted source remains ignored under `work/inspection`. Runtime confirmation of the proposed observation hook is pending.
 
-- 2026-11-07: PR #7 merged. `feat/simulation-observation-probe` adds a checksum-gated Harmony observation hook, primitive snapshots, bounded output, and cleanup. Release build passes; in-game idle/running thread/time verification is pending. The local simulation diagnostic is enabled; other diagnostics remain disabled.
+- 2026-11-07: PR #7 merged. `feat/simulation-observation-probe` adds a checksum-gated Harmony observation hook, primitive snapshots, bounded output, and cleanup. PR #8 verified in-game: user screenshot and fresh on-disk log confirm the ALL PASS marker, simulation thread 16 versus Unity thread 1, and advancing idle/running time for generation 1 (operation duration 2,500,000 ns). Release build and existing desktop diagnostics pass. PR #8 is ready for review; merge remains user-controlled. The local simulation diagnostic is now disabled, as are other diagnostics. Safe action injection and timing parity remain unproven.

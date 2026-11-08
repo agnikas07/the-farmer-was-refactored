@@ -32,6 +32,6 @@ The user's native test program can naturally animate the drone and advance simul
 
 ## Validation and limits
 
-Release build passes with zero warnings/errors. Runtime hook behavior and observations await manual Unity/Mono verification. Existing runtime/stepping/dispatch desktop diagnostics remain separate checks, not proof of this Harmony hook.
+Release build passes with zero warnings/errors. Unity/Mono verification passed on CachyOS/Proton on 2026-11-07, confirmed by the user screenshot and fresh on-disk log. Generation 1 stayed on simulation thread 16, separate from Unity thread 1; time advanced while idle and executing native code, with operation duration 2,500,000 ns. The final ALL PASS marker was present. The local diagnostic was disabled after verification. Existing runtime/stepping/dispatch desktop diagnostics remain separate checks, not proof of this Harmony hook.
 
 A passing result confirms an observation point and thread/time behavior for this build. It does not establish a safe command-injection point, native timing parity, lock-order safety for mutations, save/reset cleanup, or cancellation during a real farming action. Those require subsequent narrowly scoped integration tests.
