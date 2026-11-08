@@ -83,6 +83,14 @@ namespace TheFarmerWasRefactored
             return nativeActionProbe;
         }
 
+        public IDisposable ArmTypeScriptSourceProbe(Func<string, string> compile)
+        {
+            if (compile == null) throw new ArgumentNullException(nameof(compile));
+            if (nativeActionProbe != null) throw new InvalidOperationException("An action probe is already installed.");
+            nativeActionProbe = new NativeActionProbe(message => Logger.LogInfo(message), compile: compile);
+            return nativeActionProbe;
+        }
+
         private void Update()
         {
             simulationProbe?.Poll();

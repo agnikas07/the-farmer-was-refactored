@@ -14,6 +14,7 @@ try
         javascript => TheFarmerWasRefactored.V8Probe.JintOutputChecks.Run(javascript));
     _ = TheFarmerWasRefactored.V8Probe.ActionProgramCompiler.Compile(args[0]);
     Console.WriteLine("Native action compiler handoff: fixed TypeScript compilation and Jint preflight PASS");
+    SourceInputChecks.Run(args[0]);
     using var bundle = JsonDocument.Parse(File.ReadAllText(args[0]));
     using var loops = JsonDocument.Parse(File.ReadAllText(args[1]));
     var data = bundle.RootElement;
