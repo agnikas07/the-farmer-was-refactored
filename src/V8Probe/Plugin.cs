@@ -16,6 +16,8 @@ namespace TheFarmerWasRefactored.V8Probe
 
         private void Awake()
         {
+            var useJint = Config.Bind("Diagnostics", "RunJintPipelineProbe", false,
+                "Execute V8-compiled TypeScript in bounded Jint engines with counting stubs.").Value;
             var compile = Config.Bind("Diagnostics", "RunCompilerProbe", false,
                 "Compile trusted TypeScript fixtures on the V8 worker; no farm actions.").Value;
             if (!Config.Bind("Diagnostics", "Enabled", false,
@@ -27,7 +29,8 @@ namespace TheFarmerWasRefactored.V8Probe
             }
             var unityThread = Thread.CurrentThread.ManagedThreadId;
             var bundlePath = Path.Combine(Path.GetDirectoryName(Info.Location), "compiler-bundle.json");
-            var prefix = compile ? "V8 game compiler probe" : "V8 loader probe";
+            compile = compile || useJint;
+            var prefix = useJint ? "V8 to Jint game probe" : compile ? "V8 game compiler probe" : "V8 loader probe";
             Logger.LogInfo(prefix + ": starting worker");
             _ = Task.Run(() =>
             {
@@ -37,7 +40,8 @@ namespace TheFarmerWasRefactored.V8Probe
                     if (compile && Volatile.Read(ref stopped) == 0)
                         CompilerChecks.Run(bundlePath,
                             message => messages.Enqueue(prefix + ": " + message),
-                            () => Volatile.Read(ref stopped) != 0);
+                            () => Volatile.Read(ref stopped) != 0,
+                            useJint ? (Action<string>)(javascript => JintOutputChecks.Run(javascript)) : null);
                 }
                 catch (Exception error) { messages.Enqueue($"{prefix} FAILED: {error}"); }
             });

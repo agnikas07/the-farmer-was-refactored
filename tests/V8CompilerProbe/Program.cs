@@ -9,6 +9,9 @@ try
     if (args.Length != 2) throw new ArgumentException("Supply bundle and loop-case JSON paths.");
     TheFarmerWasRefactored.V8Probe.CompilerChecks.Run(args[0],
         message => Console.WriteLine("Shared game compiler checks: " + message), () => false);
+    TheFarmerWasRefactored.V8Probe.CompilerChecks.Run(args[0],
+        message => Console.WriteLine("V8 to Jint desktop checks: " + message), () => false,
+        javascript => TheFarmerWasRefactored.V8Probe.JintOutputChecks.Run(javascript));
     using var bundle = JsonDocument.Parse(File.ReadAllText(args[0]));
     using var loops = JsonDocument.Parse(File.ReadAllText(args[1]));
     var data = bundle.RootElement;
