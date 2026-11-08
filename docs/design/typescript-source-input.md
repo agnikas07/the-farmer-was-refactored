@@ -70,7 +70,14 @@ about what the user intended. Disable Enabled and RunSourceInputProbe afterward.
 Desktop tests pass for 0/1/3 calls, CRLF, semantic error line numbers, recovery,
 source size rejection, and compilation without executing runtime-only exceptions.
 Existing runtime/mailbox and V8 compiler suites pass; Unity build is clean.
-Manual editor integration, repeated Run, failure recovery, and Stop are pending.
+Manual validation passed on 2026-11-07 under Unity/Mono on CachyOS/Proton:
+user screenshots confirm one-call and three-call runs (400 operations per call),
+repeated Run, rejection with TS2322 on line 3 and no action completions, and a
+corrected one-call run in the same session after rejection. The Stop screenshot
+and fresh BepInEx log confirm source compiled, scheduler yield, and worker released
+without completed calls. Earlier results are screenshot-only because subsequent
+launches overwrote their logs. All local diagnostic flags are now disabled.
+These checks do not establish every cancellation race or supported game state.
 
 The editor still uses Python highlighting, tokenization, and error UI; native
 parse warnings may remain visible even when marked TypeScript runs successfully.
