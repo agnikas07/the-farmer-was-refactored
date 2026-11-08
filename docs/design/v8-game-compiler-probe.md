@@ -1,7 +1,7 @@
 # TypeScript compiler inside Unity/V8
 
 This extends the separate V8 diagnostic after PR #18 verified native loading
-under Unity/Mono on CachyOS/Proton. In-game compilation is pending manual testing.
+under Unity/Mono on CachyOS/Proton. All checks passed in-game on 2026-11-07, confirmed by the user screenshot and fresh BepInEx log. Compiler load took 353 ms; individual compilations took 0–342 ms. The local diagnostic was disabled afterward.
 The same C# check implementation passes in the Linux x64 desktop V8 probe.
 
 ## What it checks
