@@ -19,10 +19,17 @@ namespace TheFarmerWasRefactored
         private CancellationTokenSource steppingStop;
         private DispatchProbe dispatchProbe;
         private SimulationProbe simulationProbe;
+        private NativeActionProbe nativeActionProbe;
 
         private void Awake()
         {
             Logger.LogInfo("The Farmer was Refactored loaded.");
+            if (Config.Bind("Diagnostics", "RunNativeActionProbe", false,
+                "Replace the marked diagnostic program with two native flip actions.").Value)
+            {
+                try { nativeActionProbe = new NativeActionProbe(message => Logger.LogInfo(message)); }
+                catch (Exception error) { Logger.LogError($"Native action probe disabled: {error}"); }
+            }
             if (Config.Bind("Diagnostics", "RunSimulationProbe", false,
                 "Observe native simulation ownership and time without mutations.").Value)
             {
@@ -70,6 +77,7 @@ namespace TheFarmerWasRefactored
         private void Update()
         {
             simulationProbe?.Poll();
+            nativeActionProbe?.Poll();
             if (dispatchProbe == null) return;
             try
             {
@@ -84,6 +92,7 @@ namespace TheFarmerWasRefactored
         private void OnDestroy()
         {
             simulationProbe?.Dispose();
+            nativeActionProbe?.Dispose();
             dispatchProbe?.Dispose();
             try { steppingStop?.Cancel(); }
             catch (ObjectDisposedException) { } // The completion continuation won the race.
