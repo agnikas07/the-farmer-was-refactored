@@ -5,6 +5,11 @@
 - Keep proprietary game assemblies, saves, credentials, local tools, and build outputs out of Git.
 - Distinguish successful builds from in-game verification. Do not claim untested platform support.
 
+## Language conventions
+
+- Public TypeScript functions, variables, and properties use camelCase (for example, `canHarvest()` and `doAFlip()`). Use PascalCase for type names.
+- Keep native Python-style snake_case names inside compatibility adapters and native inspection/test instructions. New TypeScript examples, declarations, and teaching material must use the TypeScript names.
+
 ## Session continuity
 
 - Read `PROJECT_STATUS.md` at the start of each session before planning or editing.
