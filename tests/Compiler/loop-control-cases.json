@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ordinary while",
+    "body": "let n=0; while(n<2){n++;continue;} return n;"
+  },
+  {
+    "name": "labeled while",
+    "body": "let n=0; scan:while(n<2){n++;continue;} return n;"
+  },
+  {
+    "name": "labeled while with switch",
+    "body": "let n=0; scan:while(n<2){switch(1){case 1:n++;continue;default:break scan;}} return n;"
+  },
+  {
+    "name": "labeled for",
+    "body": "let n=0; scan:for(let i=0;i<2;i++){n++;continue;} return n;"
+  },
+  {
+    "name": "labeled do",
+    "body": "let n=0; scan:do{n++;continue;}while(n<2); return n;"
+  },
+  {
+    "name": "explicit label",
+    "body": "let n=0; scan:while(n<2){n++;continue scan;} return n;"
+  }
+]
