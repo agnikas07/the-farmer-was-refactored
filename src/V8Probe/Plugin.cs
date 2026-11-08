@@ -4,24 +4,30 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BepInEx;
+using BepInEx.Bootstrap;
 using Microsoft.ClearScript.V8;
 
 namespace TheFarmerWasRefactored.V8Probe
 {
+    [BepInDependency(global::TheFarmerWasRefactored.Plugin.Id)]
     [BepInPlugin("io.github.agnikas07.thefarmerwasrefactored.v8probe", "Refactored V8 loader probe", "0.1.0")]
     public sealed class Plugin : BaseUnityPlugin
     {
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
         private int stopped;
+        private readonly ConcurrentQueue<string> compiledPrograms = new ConcurrentQueue<string>();
+        private IDisposable actionProbe;
 
         private void Awake()
         {
+            var nativeActions = Config.Bind("Diagnostics", "RunCompiledActionProbe", false,
+                "Compile a fixed TypeScript loop and arm two real native flips from the marked program.").Value;
             var useJint = Config.Bind("Diagnostics", "RunJintPipelineProbe", false,
                 "Execute V8-compiled TypeScript in bounded Jint engines with counting stubs.").Value;
             var compile = Config.Bind("Diagnostics", "RunCompilerProbe", false,
                 "Compile trusted TypeScript fixtures on the V8 worker; no farm actions.").Value;
             if (!Config.Bind("Diagnostics", "Enabled", false,
-                "Load Windows x64 V8 on a worker. Development-only; no farming actions.").Value) return;
+                "Load Windows x64 V8 on a worker. Development-only; action mode requires a marked program.").Value) return;
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || !Environment.Is64BitProcess)
             {
                 Logger.LogError("V8 loader probe: requires a Windows x64 process (including Proton).");
@@ -30,14 +36,19 @@ namespace TheFarmerWasRefactored.V8Probe
             var unityThread = Thread.CurrentThread.ManagedThreadId;
             var bundlePath = Path.Combine(Path.GetDirectoryName(Info.Location), "compiler-bundle.json");
             compile = compile || useJint;
-            var prefix = useJint ? "V8 to Jint game probe" : compile ? "V8 game compiler probe" : "V8 loader probe";
+            var prefix = nativeActions ? "TypeScript action probe" : useJint ? "V8 to Jint game probe" : compile ? "V8 game compiler probe" : "V8 loader probe";
             Logger.LogInfo(prefix + ": starting worker");
             _ = Task.Run(() =>
             {
                 try
                 {
                     Run(unityThread);
-                    if (compile && Volatile.Read(ref stopped) == 0)
+                    if (nativeActions && Volatile.Read(ref stopped) == 0)
+                    {
+                        var javascript = ActionProgramCompiler.Compile(bundlePath);
+                        if (Volatile.Read(ref stopped) == 0) compiledPrograms.Enqueue(javascript);
+                    }
+                    else if (compile && Volatile.Read(ref stopped) == 0)
                         CompilerChecks.Run(bundlePath,
                             message => messages.Enqueue(prefix + ": " + message),
                             () => Volatile.Read(ref stopped) != 0,
@@ -75,12 +86,24 @@ namespace TheFarmerWasRefactored.V8Probe
         private void Update()
         {
             while (messages.TryDequeue(out var message)) Logger.LogInfo(message);
+            if (Volatile.Read(ref stopped) == 0 && compiledPrograms.TryDequeue(out var javascript))
+            {
+                try
+                {
+                    var main = (global::TheFarmerWasRefactored.Plugin)Chainloader.PluginInfos[
+                        global::TheFarmerWasRefactored.Plugin.Id].Instance;
+                    actionProbe = main.ArmCompiledActionProbe(javascript);
+                    Logger.LogInfo("TypeScript action probe: compiler and bounded Jint preflight PASS; native probe ready");
+                }
+                catch (Exception error) { Logger.LogError($"TypeScript action probe FAILED: {error}"); }
+            }
         }
 
         private void OnDestroy()
         {
             // Fixed scripts terminate themselves. Never join or dispose an engine on Unity.
             Interlocked.Exchange(ref stopped, 1);
+            actionProbe?.Dispose();
         }
     }
 }

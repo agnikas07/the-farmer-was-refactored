@@ -40,7 +40,8 @@ inspect the full BepInEx log for assembly/plugin loading errors.
 The deployment script stages Windows native V8, managed dependencies, and
 package notices in a separate plugin directory, omitting framework DLLs already
 supplied by Unity. Assembly resolution is process-wide, so this is not dependency
-isolation. The main plugin build/deployment is unchanged. No binaries enter Git.
+isolation. The deployment script also updates the main plugin, now required by the optional
+[compiled-action mode](typescript-native-actions.md). No binaries enter Git.
 Set Enabled back to false after testing; remove the diagnostic directory when
 its dependencies are no longer needed. Other operating systems, compiler
 hosting, player scripts, and shutdown during native loading remain unverified.

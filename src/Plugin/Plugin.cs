@@ -74,6 +74,15 @@ namespace TheFarmerWasRefactored
             steppingStop = null;
         }
 
+        // Development-only entry point: called on Unity's thread after successful compilation.
+        public IDisposable ArmCompiledActionProbe(string javascript)
+        {
+            if (string.IsNullOrWhiteSpace(javascript)) throw new ArgumentException("Missing compiled code.");
+            if (nativeActionProbe != null) throw new InvalidOperationException("An action probe is already installed.");
+            nativeActionProbe = new NativeActionProbe(message => Logger.LogInfo(message), javascript);
+            return nativeActionProbe;
+        }
+
         private void Update()
         {
             simulationProbe?.Poll();

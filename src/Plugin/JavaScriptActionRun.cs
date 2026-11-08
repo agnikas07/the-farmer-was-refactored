@@ -21,7 +21,7 @@ namespace TheFarmerWasRefactored
         internal bool NeedsWorker => Waiting && !mailbox.HasPending && !worker.IsCompleted
             && Volatile.Read(ref disposed) == 0;
 
-        internal JavaScriptActionRun(Execution execution, Action<string> report)
+        internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();")
         {
             Execution = execution;
             this.report = report;
@@ -33,7 +33,7 @@ namespace TheFarmerWasRefactored
                     .MaxStatements(100).LimitMemory(8_000_000).LimitRecursion(64)))
                 {
                     engine.SetValue("doAFlip", new Action(mailbox.DoAFlip));
-                    engine.Execute("doAFlip(); doAFlip();");
+                    engine.Execute(javascript);
                 }
             });
         }

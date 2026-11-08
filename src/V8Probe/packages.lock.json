@@ -249,6 +249,18 @@
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
+      },
+      "TheFarmerWasRefactored": {
+        "type": "Project",
+        "dependencies": {
+          "TheFarmerWasRefactored.Runtime": "[1.0.0, )"
+        }
+      },
+      "thefarmerwasrefactored.runtime": {
+        "type": "Project",
+        "dependencies": {
+          "Jint": "[4.17.0, )"
+        }
       }
     }
   }
