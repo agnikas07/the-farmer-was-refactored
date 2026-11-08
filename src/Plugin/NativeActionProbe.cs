@@ -8,10 +8,10 @@ using HarmonyLib;
 
 namespace TheFarmerWasRefactored
 {
-    // A fixed command source for testing native scheduling, not a player language.
+    // Opt-in JavaScript-to-native action diagnostic, not a player language.
     internal sealed class NativeActionProbe : IDisposable
     {
-        private const string Marker = "# refactored-action-probe\ndo_a_flip()";
+        private const string Marker = "# refactored-javascript-probe\ndoAFlip()";
         private static NativeActionProbe active;
         private readonly Harmony harmony = new Harmony(Plugin.Id + ".native-action-probe");
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
@@ -30,16 +30,22 @@ namespace TheFarmerWasRefactored
                     throw new NotSupportedException("Core.dll differs from the inspected build.");
             }
             if (Interlocked.CompareExchange(ref active, this, null) != null)
-                throw new InvalidOperationException("Native action probe already installed.");
+                throw new InvalidOperationException("JavaScript action probe already installed.");
             try
             {
                 var target = AccessTools.Method(typeof(MainSim), "StartMainExecution",
                     new[] { typeof(CodeWindow), typeof(Node), typeof(bool) });
                 if (target == null) throw new MissingMethodException("StartMainExecution");
                 harmony.Patch(target, prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeStart)));
+                harmony.Patch(AccessTools.Method(typeof(Execution), "Execute"),
+                    transpiler: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.YieldAtLoopBoundary)));
+                harmony.Patch(AccessTools.Method(typeof(Simulation), "RunNextStep"),
+                    prefix: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.BeforeSimulationStep)));
+                harmony.Patch(AccessTools.Method(typeof(Execution), "StopExecution"),
+                    prefix: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.BeforeStop)));
             }
             catch { Dispose(); throw; }
-            report("Native action probe: armed; run the marked two-line program in the normal farm.");
+            report("JavaScript action probe: armed; run the marked two-line program in the normal farm.");
         }
 
         private static void BeforeStart(CodeWindow cw, ref Node syntaxTree, bool stepByStep)
@@ -54,18 +60,18 @@ namespace TheFarmerWasRefactored
                 if (source.Replace("\r\n", "\n").Trim() != Marker) return;
                 if (Interlocked.CompareExchange(ref probe.claimed, 1, 0) != 0) return;
                 syntaxTree = new FlipNode(cw, probe);
-                probe.messages.Enqueue("Native action probe: custom node selected; expecting two native flips.");
+                probe.messages.Enqueue("JavaScript action probe: custom node selected; expecting JavaScript doAFlip(); doAFlip();.");
             }
             catch (Exception error)
             {
-                probe.messages.Enqueue($"Native action probe FAILED: {error.GetType().Name}: {error.Message}");
+                probe.messages.Enqueue($"JavaScript action probe FAILED: {error.GetType().Name}: {error.Message}");
             }
         }
 
         private sealed class FlipNode : Node
         {
             private readonly NativeActionProbe probe;
-            public FlipNode(CodeWindow window, NativeActionProbe probe) : base(window, Marker.IndexOf("do_a_flip", StringComparison.Ordinal), Marker.Length - 1)
+            public FlipNode(CodeWindow window, NativeActionProbe probe) : base(window, Marker.IndexOf("doAFlip", StringComparison.Ordinal), Marker.Length - 1)
             {
                 this.probe = probe;
             }
@@ -77,31 +83,17 @@ namespace TheFarmerWasRefactored
                 if (thread == probe.unityThread || execution.sim.leaderboardType != LeaderboardType.none
                     || execution.States.Count != 1 || state.DroneId != 0 || execution.sim.simRunner.GetType() != typeof(MainSim))
                 {
-                    probe.messages.Enqueue("Native action probe FAILED: requires one drone in a normal farm on the simulation thread.");
+                    probe.messages.Enqueue("JavaScript action probe FAILED: requires one drone in a normal farm on the simulation thread.");
                     yield break;
                 }
-                // The scheduler owns this iterator. No worker waits, direct Drone calls,
-                // manual ApplySideEffect calls, or synthetic time/operation increments.
                 state.CurrentExecutingNode = this;
-                for (var index = 1; index <= 2; index++)
+                var run = new JavaScriptActionRun(execution, probe.messages.Enqueue);
+                if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
-                    if (Volatile.Read(ref probe.disposed) != 0) yield break;
-                    var before = state.OpCount;
-                    state.currentDependencies.Add(("do_a_flip", boxedParams.wordStart, boxedParams.wordEnd));
-                    var ops = BuiltinFunctions.Functions["do_a_flip"].binding(
-                        new List<IPyObject>(), execution.sim, execution, state.DroneId);
-                    if (CheckIncrementOpCount(state, execution, ops)) yield return 0;
-                    // Resumed by native scheduling only after its action cost gate.
-                    var charged = state.OpCount - before;
-                    if (state.currentSideEffect != SideEffect.None || !(state.ReturnValue is PyNone)
-                        || charged <= 0 || Thread.CurrentThread.ManagedThreadId != thread)
-                    {
-                        probe.messages.Enqueue("Native action probe FAILED: unexpected native completion.");
-                        yield break;
-                    }
-                    probe.messages.Enqueue($"Native action probe: flip={index} thread={thread} chargedOps={charged}");
+                    run.Dispose();
+                    throw new InvalidOperationException("Diagnostic run already active.");
                 }
-                probe.messages.Enqueue("Native action probe: two native actions completed ALL PASS");
+                foreach (var step in run.Commands(this, state)) yield return step;
             }
 
             public override Node DeepCopy(Dictionary<object, object> copies)
@@ -122,6 +114,7 @@ namespace TheFarmerWasRefactored
         {
             if (Interlocked.Exchange(ref disposed, 1) != 0) return;
             Interlocked.CompareExchange(ref active, null, this);
+            Interlocked.Exchange(ref ActionSchedulerGate.Run, null)?.Dispose();
             harmony.UnpatchSelf();
         }
     }

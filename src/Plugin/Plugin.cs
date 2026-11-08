@@ -25,10 +25,10 @@ namespace TheFarmerWasRefactored
         {
             Logger.LogInfo("The Farmer was Refactored loaded.");
             if (Config.Bind("Diagnostics", "RunNativeActionProbe", false,
-                "Replace the marked diagnostic program with two native flip actions.").Value)
+                "Run two JavaScript doAFlip calls through native scheduling from the marked program.").Value)
             {
                 try { nativeActionProbe = new NativeActionProbe(message => Logger.LogInfo(message)); }
-                catch (Exception error) { Logger.LogError($"Native action probe disabled: {error}"); }
+                catch (Exception error) { Logger.LogError($"JavaScript action probe disabled: {error}"); }
             }
             if (Config.Bind("Diagnostics", "RunSimulationProbe", false,
                 "Observe native simulation ownership and time without mutations.").Value)
