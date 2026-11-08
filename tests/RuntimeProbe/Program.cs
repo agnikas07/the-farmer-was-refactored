@@ -4,6 +4,11 @@ using TheFarmerWasRefactored.Runtime;
 
 try
 {
+    if (args.Length == 2 && args[0] == "--compiler-host")
+    {
+        CompilerHostChecks.Run(args[1]);
+        return 0;
+    }
     if (args.Length == 2 && args[0] == "--compiled-typescript")
     {
         CompiledTypeScriptChecks.Run(args[1]);
