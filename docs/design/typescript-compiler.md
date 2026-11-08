@@ -48,5 +48,6 @@ No game launch or deployment is needed.
 The compiler adapter is JavaScript (.mjs), so it needs no bootstrap compiler;
 player input and the example are TypeScript. The Node host is separate from the
 virtual compiler core. Neither selects an embedded compiler engine or requires
-players to install Node. Compiler bundling/performance, generated-code execution
-in Jint, in-game diagnostics, and editor integration are subsequent steps.
+players to install Node. Compiler bundling/performance, in-game diagnostics and editor integration are subsequent steps.
+[Desktop Jint integration](typescript-jint-pipeline.md) now verifies selected
+emitted programs; it does not establish Unity/Mono compiler-output execution.
