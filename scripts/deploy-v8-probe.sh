@@ -6,6 +6,8 @@ mkdir -p .tools/runtime
 chmod 700 .tools/runtime
 XDG_RUNTIME_DIR="$PWD/.tools/runtime" dotnet build \
   src/V8Probe/TheFarmerWasRefactored.V8Probe.csproj -c Release -p:RestoreLockedMode=true
+mkdir -p work/compiler-host
+node tests/Compiler/prepare-host-probe.mjs work/compiler-host/game-bundle.json
 # This diagnostic has its own directory and is not included by deploy-dev.sh.
 python3 - <<'PY'
 import json
@@ -24,6 +26,11 @@ for dll in output.glob('*.dll'):
     if (Path('.tools/game/TheFarmerWasReplaced_Data/Managed') / dll.name).exists():
         continue
     shutil.copy2(dll, stage)
+shutil.copy2('work/compiler-host/game-bundle.json', stage / 'compiler-bundle.json')
+ts_notices = stage / 'licenses' / 'TypeScript'
+ts_notices.mkdir(parents=True)
+for name in ('LICENSE.txt', 'ThirdPartyNoticeText.txt'):
+    shutil.copy2(Path('node_modules/typescript') / name, ts_notices)
 packages = json.loads(Path('src/V8Probe/packages.lock.json').read_text())
 for name, package in packages['dependencies']['.NETStandard,Version=v2.1'].items():
     root = Path(os.environ['NUGET_PACKAGES']) / name.lower() / package['resolved']

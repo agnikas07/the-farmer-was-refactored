@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BepInEx;
@@ -15,6 +16,8 @@ namespace TheFarmerWasRefactored.V8Probe
 
         private void Awake()
         {
+            var compile = Config.Bind("Diagnostics", "RunCompilerProbe", false,
+                "Compile trusted TypeScript fixtures on the V8 worker; no farm actions.").Value;
             if (!Config.Bind("Diagnostics", "Enabled", false,
                 "Load Windows x64 V8 on a worker. Development-only; no farming actions.").Value) return;
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || !Environment.Is64BitProcess)
@@ -23,11 +26,20 @@ namespace TheFarmerWasRefactored.V8Probe
                 return;
             }
             var unityThread = Thread.CurrentThread.ManagedThreadId;
-            Logger.LogInfo("V8 loader probe: starting worker");
+            var bundlePath = Path.Combine(Path.GetDirectoryName(Info.Location), "compiler-bundle.json");
+            var prefix = compile ? "V8 game compiler probe" : "V8 loader probe";
+            Logger.LogInfo(prefix + ": starting worker");
             _ = Task.Run(() =>
             {
-                try { Run(unityThread); }
-                catch (Exception error) { messages.Enqueue($"V8 loader probe FAILED: {error}"); }
+                try
+                {
+                    Run(unityThread);
+                    if (compile && Volatile.Read(ref stopped) == 0)
+                        CompilerChecks.Run(bundlePath,
+                            message => messages.Enqueue(prefix + ": " + message),
+                            () => Volatile.Read(ref stopped) != 0);
+                }
+                catch (Exception error) { messages.Enqueue($"{prefix} FAILED: {error}"); }
             });
         }
 
