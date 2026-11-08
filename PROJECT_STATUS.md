@@ -88,7 +88,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 ## Next work, in small increments
 
 1. Dispatch feasibility is verified in Unity/Mono and PR #5 is merged. JavaScript round-trip, host error propagation, and queued cancellation pass in-game; owner-thread and capacity guards also pass on desktop. See [dispatch instructions](docs/design/dispatch-probe.md).
-2. Inspect actual game-action and simulation timing APIs before connecting this transport to farming. Long actions must be scheduled without blocking the main thread. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
+2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. Next: a read-only simulation-thread/identity/timing probe before choosing an action adapter. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
 5. Expand API, progression, modules, drones, and teaching material together; validate broader behavior and platforms before packaging a release.
@@ -128,3 +128,5 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - 2026-11-07: `feat/runtime-stepping-probe` adds a diagnostic worker-thread checkpoint gate and nonblocking Unity polling. Desktop and Unity/Mono checks pass. User screenshot and the fresh on-disk log confirm all four checks and `Stepping probe: ALL PASS` on 2026-11-07. The local diagnostic is now disabled. PR #4 merged. No game actions or tick scheduler are implemented.
 
 - 2026-11-07: `feat/main-thread-dispatch-probe` adds a single-slot request/result transport and an opt-in Update-driven diagnostic. Desktop and Unity/Mono checks pass. The user screenshot and fresh on-disk log confirm all three checks and `Dispatch probe: ALL PASS` on 2026-11-07. PR #5 is merged. The local dispatch diagnostic is now disabled, as are previous diagnostics. No farming actions are called.
+
+- 2026-11-07: PR #6 merged. `docs/game-action-integration` records build-specific Core.dll inspection, native action accounting, and thread/lock ownership. No gameplay code changed; extracted source remains ignored under `work/inspection`. Runtime confirmation of the proposed observation hook is pending.
