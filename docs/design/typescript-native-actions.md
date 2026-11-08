@@ -59,8 +59,13 @@ Disable Enabled and RunCompiledActionProbe after testing.
 ## Evidence and remaining work
 
 Locked builds and desktop runtime/mailbox/compiler suites pass, including the
-exact fixed-source compiler helper and its Jint preflight. In-game normal and
-Stop runs are pending. The diagnostic still suspends world timers while awaiting
+exact fixed-source compiler helper and its Jint preflight. Unity/Mono normal and Stop runs passed on CachyOS/Proton on 2026-11-07.
+The normal screenshot confirms two completions at 400 operations each, ALL PASS,
+and worker released. The Stop screenshot and fresh BepInEx log confirm worker
+released without completed-action or ALL PASS markers. The Stop run overwrote
+the normal log, so normal-run evidence is screenshot-only. All local diagnostic
+settings are now disabled. This verifies these two manual scenarios, not all
+cancellation races. The diagnostic still suspends world timers while awaiting
 worker requests. Source locations refer to the trigger, not the compiled source.
 Editor integration, production scheduling, source-map error display, repeated runs,
 world changes, additional APIs, and other platforms remain unverified.
