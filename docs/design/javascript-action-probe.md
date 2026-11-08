@@ -54,7 +54,13 @@ One run is accepted per launch. No tickets transfer to replacement worlds.
    An already applied flip may finish animating; cancellation cannot undo it.
 6. Disable the diagnostic after verification.
 
-Release build and full desktop suite pass. New native hooks, worker sequencing,
-and Stop behavior await Unity/Mono verification. The desktop suite validates the
+Release build and full desktop suite pass. Unity/Mono checks passed on CachyOS/Proton on 2026-11-07.
+The normal-run screenshot shows a scheduler yield, two doAFlip completions at
+400 operations each, ALL PASS, and worker released. The subsequent Stop-test
+screenshot and fresh on-disk log show selection, yield, and worker released with
+no completed-call or ALL PASS markers. The normal-run log was overwritten by
+the Stop run; its evidence is the earlier user screenshot. These results verify
+this manual completion/Stop scenario, not every cancellation race. The local
+diagnostic is now disabled. The desktop suite validates the
 mailbox and Jint independently, not this game patch. Broader world-reset, speed,
 step-mode, multiple-drone, and mutation parity testing remain pending.
