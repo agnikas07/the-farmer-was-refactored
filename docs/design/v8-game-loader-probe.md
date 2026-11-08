@@ -10,7 +10,8 @@ This verifies the loader only; in-game TypeScript compilation is the next test.
 
 The worker creates V8, evaluates arithmetic and the labeled-loop reproduction,
 disposes the engine, then creates and disposes a fresh engine. Unity Update
-only drains log messages. There are no farm actions or TypeScript compilation.
+only drains log messages. The loader-only mode has no farm actions or TypeScript compilation.
+The separately enabled [compiler probe](v8-game-compiler-probe.md) adds compilation checks.
 Fixed scripts terminate themselves; this is not a cancellation/lifecycle design.
 
 ## Run locally
