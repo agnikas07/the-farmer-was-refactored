@@ -4,6 +4,12 @@ using TheFarmerWasRefactored.Runtime;
 
 try
 {
+    if (args.Length == 2 && args[0] == "--compiled-typescript")
+    {
+        CompiledTypeScriptChecks.Run(args[1]);
+        return 0;
+    }
+    if (args.Length != 0) throw new ArgumentException("Unknown test-runner arguments.");
     RuntimeProbe.Run(Console.WriteLine);
     SteppingProbe.Run(Console.WriteLine);
     MailboxChecks.Run();
