@@ -61,6 +61,9 @@ completion through the custom node.
 ## Validation
 
 Release build: zero warnings/errors. Existing desktop runtime, stepping, mailbox,
-and dispatch checks pass. Native custom-node behavior awaits manual Unity/Mono
-verification. A pass will not establish a production scheduler, multiple-drone
+and dispatch checks pass. Native custom-node verification passed on CachyOS/Proton
+on 2026-11-07. The user screenshot and fresh on-disk log confirm selection of the
+custom node, two completed flips on simulation thread 16, chargedOps=400 for each,
+and the final ALL PASS marker. The local diagnostic is now disabled.
+This does not establish a production scheduler, multiple-drone
 support, source mapping, or a safe asynchronous worker request lifecycle.
