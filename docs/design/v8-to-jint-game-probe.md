@@ -49,7 +49,11 @@ loader/compiler ALL PASS marker is insufficient. Disable all three settings afte
 Locked Unity netstandard2.1 and Linux desktop builds pass with zero warnings/errors.
 `scripts/probe-v8-compiler-host.sh` now runs the same checks with both V8 and Jint
 output execution; all pass on desktop. That runner uses NuGet's desktop Jint assets;
-the Unity build stages the netstandard assets. Manual Unity/Proton testing is pending.
+the Unity build stages the netstandard assets. Manual Unity/Proton testing passed on 2026-11-07: user screenshot and fresh
+BepInEx log confirm all seven checks and ALL PASS. Compiler load took 317 ms,
+typed-loop execution/budget checks 495 ms, recovery 100 ms, and the
+enum/generic/optional-access case 159 ms. All three local settings were
+disabled after verification. This remains counting-stub validation, not farming.
 
 All input is trusted diagnostic text. Jint has a two-second execution timeout,
 1,000-statement normal budget, 8 MB allocation limit, and recursion limit 64.
