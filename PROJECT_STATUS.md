@@ -21,7 +21,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 - The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). No player-facing runtime, TypeScript compiler, game-action bindings, editor replacement, or documentation replacement exists yet.
 - `src/Compiler`, `docs/in-game`, `examples`, and `packaging` are placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
 - No public playable release or Thunderstore package exists.
-- Windows and macOS testing is pending. Current validation covers startup and bounded runtime/stepping diagnostics only.
+- Windows and macOS testing is pending. Current validation covers startup and bounded runtime, stepping, and dispatch diagnostics only.
 
 ## Decisions and proposals
 
@@ -87,7 +87,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 
 ## Next work, in small increments
 
-1. Verify the opt-in dispatch probe in Unity/Mono. Desktop round-trip, error propagation, cancellation, owner-thread and capacity checks pass. See [dispatch instructions](docs/design/dispatch-probe.md). PR #4 merged; stepping was already verified in-game.
+1. Dispatch feasibility is verified in Unity/Mono and PR #5 is merged. JavaScript round-trip, host error propagation, and queued cancellation pass in-game; owner-thread and capacity guards also pass on desktop. See [dispatch instructions](docs/design/dispatch-probe.md).
 2. Inspect actual game-action and simulation timing APIs before connecting this transport to farming. Long actions must be scheduled without blocking the main thread. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
@@ -127,4 +127,4 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 
 - 2026-11-07: `feat/runtime-stepping-probe` adds a diagnostic worker-thread checkpoint gate and nonblocking Unity polling. Desktop and Unity/Mono checks pass. User screenshot and the fresh on-disk log confirm all four checks and `Stepping probe: ALL PASS` on 2026-11-07. The local diagnostic is now disabled. PR #4 merged. No game actions or tick scheduler are implemented.
 
-- 2026-11-07: `feat/main-thread-dispatch-probe` adds a single-slot request/result transport and an opt-in Update-driven diagnostic. Desktop checks pass; Unity/Mono verification is pending. The local dispatch diagnostic is enabled for the next launch; previous diagnostics remain disabled. No farming actions are called.
+- 2026-11-07: `feat/main-thread-dispatch-probe` adds a single-slot request/result transport and an opt-in Update-driven diagnostic. Desktop and Unity/Mono checks pass. The user screenshot and fresh on-disk log confirm all three checks and `Dispatch probe: ALL PASS` on 2026-11-07. PR #5 is merged. The local dispatch diagnostic is now disabled, as are previous diagnostics. No farming actions are called.

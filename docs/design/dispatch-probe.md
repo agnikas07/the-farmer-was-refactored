@@ -16,7 +16,7 @@ The request state atomically distinguishes queued, claimed, and cancelled-before
 
 ## Validation
 
-Run `bash scripts/test-runtime.sh`. Desktop checks pass on 2026-11-07; Unity/Mono verification is pending. Existing runtime and stepping checks remain unchanged and pass.
+Run `bash scripts/test-runtime.sh`. Desktop and Unity/Mono checks passed on 2026-11-07. The user launched the isolated game on CachyOS/Proton; their screenshot and agent inspection of the fresh BepInEx log confirm all three dispatch checks and `Dispatch probe: ALL PASS`. Other platforms and actual farming actions remain untested. Existing runtime and stepping checks remain unchanged and pass.
 
 With the development game closed, deploy and enable `RunDispatchProbe = true` under `[Diagnostics]` in the local BepInEx plugin config. Launch the isolated game, wait for the menu, close it, and inspect:
 
