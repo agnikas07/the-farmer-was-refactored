@@ -2,6 +2,15 @@
   "version": 1,
   "dependencies": {
     ".NETStandard,Version=v2.1": {
+      "Jint": {
+        "type": "Direct",
+        "requested": "[4.17.0, )",
+        "resolved": "4.17.0",
+        "contentHash": "9jdpLQQYsWTjOn2THpiR8zRJ34ksV6ofW0gJvZxJW/fIGK+A+TkpWonhuuLDRwqLDjP+9WsxYt2MEge6lWjk2A==",
+        "dependencies": {
+          "Acornima": "1.7.0"
+        }
+      },
       "Microsoft.ClearScript.V8": {
         "type": "Direct",
         "requested": "[7.5.1.1, )",
@@ -18,6 +27,14 @@
         "requested": "[7.5.1.1, )",
         "resolved": "7.5.1.1",
         "contentHash": "N79bR+RG7FD8wv/tdXZuOLDx3YAQ+mSB5P0gcUNMGEFO4DljRSPlJcEzHLrPvrlPzNnc3aV6Rx2v5V3qordPJg=="
+      },
+      "Acornima": {
+        "type": "Transitive",
+        "resolved": "1.7.0",
+        "contentHash": "a2I4O4qkuAdB0oSaGz6/k0n/bXxMbGcLBra5dNTTVSLmTwM7uORA8ebpOrNMmDfFWOMwvuaRL6gPprRV4HTV0w==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
       },
       "Microsoft.ClearScript.Core": {
         "type": "Transitive",

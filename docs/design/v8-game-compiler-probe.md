@@ -2,6 +2,7 @@
 
 This extends the separate V8 diagnostic after PR #18 verified native loading
 under Unity/Mono on CachyOS/Proton. All checks passed in-game on 2026-11-07, confirmed by the user screenshot and fresh BepInEx log. Compiler load took 353 ms; individual compilations took 0–342 ms. The local diagnostic was disabled afterward.
+The [Jint pipeline mode](v8-to-jint-game-probe.md) separately checks emitted code in Jint.
 The same C# check implementation passes in the Linux x64 desktop V8 probe.
 
 ## What it checks
@@ -44,7 +45,7 @@ bash scripts/launch-dev.sh
 rg 'V8 game compiler probe' .tools/game/BepInEx/LogOutput.log
 ```
 
-Require all six checks and `V8 game compiler probe: ALL PASS`. The older
+Require all checks and `V8 game compiler probe: ALL PASS`. The older
 `V8 loader probe: ALL PASS` only verifies loading, not compilation. If the new
 marker is absent, inspect the full log for loading failures. Disable both
 settings after validation.

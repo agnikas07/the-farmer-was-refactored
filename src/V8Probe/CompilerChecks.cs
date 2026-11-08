@@ -10,7 +10,7 @@ namespace TheFarmerWasRefactored.V8Probe
     // Shared with the desktop probe. Inputs are trusted development fixtures only.
     internal static class CompilerChecks
     {
-        internal static void Run(string bundlePath, Action<string> log, Func<bool> stopped)
+        internal static void Run(string bundlePath, Action<string> log, Func<bool> stopped, Action<string> executeOutput = null)
         {
             var bundle = JObject.Parse(File.ReadAllText(bundlePath));
             var watch = Stopwatch.StartNew();
@@ -30,9 +30,12 @@ namespace TheFarmerWasRefactored.V8Probe
                     "doAFlip();\nconst count: number = 'two';",
                     "do_a_flip();",
                     "export const count = 2;",
-                    "doAFlip(); doAFlip();"
+                    "doAFlip(); doAFlip();",
+                    "enum Turns { Two = 2 } function identity<T>(value: T): T { return value; } " +
+                    "const config: { count?: number } = { count: identity(Turns.Two) }; " +
+                    "for (let i = 0; i < (config?.count ?? 0); i++) doAFlip();"
                 };
-                var names = new[] { "typed loop", "semantic rejection", "snake_case rejection", "module rejection", "recovery after errors" };
+                var names = new[] { "typed loop", "semantic rejection", "snake_case rejection", "module rejection", "recovery after errors", "enum generic optional access" };
                 for (var i = 0; i < sources.Length; i++)
                 {
                     if (stopped()) return;
@@ -40,14 +43,15 @@ namespace TheFarmerWasRefactored.V8Probe
                     var json = (string)compiler.Evaluate("JSON.stringify(compile(" +
                         JsonConvert.SerializeObject(sources[i]) + ", libraries, apiText))");
                     var result = JObject.Parse(json);
-                    var valid = i == 0 || i == 4;
+                    var valid = i == 0 || i >= 4;
                     Check((bool)result["ok"] == valid, names[i] + ": " + json);
                     if (valid)
                     {
                         var map = JObject.Parse((string)result["sourceMap"]);
                         Check((string)map["sourcesContent"][0] == sources[i], "Source map lost original source.");
                         // Stub only: emitted code must not access compiler internals or farm state.
-                        using (var player = new V8ScriptEngine())
+                        if (executeOutput != null) executeOutput((string)result["javascript"]);
+                        else using (var player = new V8ScriptEngine())
                         {
                             player.Execute("var flipCount = 0; function doAFlip() { flipCount++; }");
                             player.Execute((string)result["javascript"]);
