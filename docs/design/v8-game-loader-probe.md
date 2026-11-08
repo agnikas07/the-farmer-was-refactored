@@ -2,7 +2,11 @@
 
 This opt-in, standalone BepInEx plugin checks ClearScript/V8 7.5.1.1 in the
 Windows x64 Unity/Mono process (including Proton). The Linux desktop compiler
-comparison passed; Unity compatibility is still pending manual verification.
+comparison passed. On 2026-11-07, the user screenshot and fresh BepInEx log
+confirmed all loader checks under Unity/Mono on CachyOS/Proton: worker thread
+10 versus Unity thread 1, native evaluation/loop control PASS, disposal/fresh
+engine PASS, and ALL PASS. The local diagnostic was disabled afterward.
+This verifies the loader only; in-game TypeScript compilation is the next test.
 
 The worker creates V8, evaluates arithmetic and the labeled-loop reproduction,
 disposes the engine, then creates and disposes a fresh engine. Unity Update
