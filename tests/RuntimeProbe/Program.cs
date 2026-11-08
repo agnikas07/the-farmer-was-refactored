@@ -7,6 +7,7 @@ try
     RuntimeProbe.Run(Console.WriteLine);
     SteppingProbe.Run(Console.WriteLine);
     MailboxChecks.Run();
+    ActionMailboxChecks.Run();
     var owner = Thread.CurrentThread.ManagedThreadId;
     using (var probe = new DispatchProbe(Console.WriteLine, value =>
     {

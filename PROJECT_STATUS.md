@@ -28,6 +28,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 ### Agreed direction
 
 - Player language: TypeScript. Earlier Rust-like language and transpiler ideas were superseded.
+- Public API functions, variables, and properties use camelCase (canHarvest, doAFlip); types use PascalCase. Native snake_case names stay inside adapters and native diagnostic instructions. New TypeScript documentation/examples must follow these conventions.
 - Architecture direction: compile TypeScript to JavaScript and run it in an embedded runtime, with C# game integration.
 - Use the official TypeScript compiler and actual semantic type checking, not type stripping alone.
 - Replace in-game teaching material as part of the feature work, not as a final polish step.
@@ -39,7 +40,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 - Jint 4.17.0 is pinned for the feasibility probe, not yet selected as the production runtime.
 - Compiler hosting/bundling is undecided. Prefer a release that does not require players to install Node.js separately.
 - Synchronous-looking farm commands, global beginner API, shared API metadata for declarations/docs, and compiler instrumentation are design proposals.
-- Exact API names, module model, execution scheduler, computation tick accounting, and drone state transfer remain undecided.
+- Beyond the agreed naming convention/examples, API coverage, module model, execution scheduler, computation tick accounting, and drone state transfer remain undecided.
 - TypeScript support does not automatically provide Node.js, browser APIs, or arbitrary npm package compatibility.
 
 ## Environment and local state
@@ -88,7 +89,7 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 ## Next work, in small increments
 
 1. Dispatch feasibility is verified in Unity/Mono and PR #5 is merged. JavaScript round-trip, host error propagation, and queued cancellation pass in-game; owner-thread and capacity guards also pass on desktop. See [dispatch instructions](docs/design/dispatch-probe.md).
-2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. A read-only simulation-thread/identity/timing probe is now implemented on `feat/simulation-observation-probe`; [manual validation](docs/design/simulation-probe.md) passed in Unity/Mono. The next branch, `feat/native-action-adapter`, adds a fixed two-flip custom Node using native dependency checks, built-in binding, and scheduling; [manual validation](docs/design/native-action-probe.md) passed in Unity/Mono. JavaScript delivery is not connected yet. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
+2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. A read-only simulation-thread/identity/timing probe is now implemented on `feat/simulation-observation-probe`; [manual validation](docs/design/simulation-probe.md) passed in Unity/Mono. The next branch, `feat/native-action-adapter`, adds a fixed two-flip custom Node using native dependency checks, built-in binding, and scheduling; [manual validation](docs/design/native-action-probe.md) passed in Unity/Mono. A per-run [action mailbox](docs/design/action-mailbox.md) now passes desktop Jint tests with camelCase doAFlip, separate claim/completion, cancellation, identity, and failure handling. Native wiring and Unity/Mono validation remain pending; resolve idle-worker scheduler yielding and stop/reset disposal before connecting it. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
 5. Expand API, progression, modules, drones, and teaching material together; validate broader behavior and platforms before packaging a release.
@@ -133,4 +134,6 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 
 - 2026-11-07: PR #7 merged. `feat/simulation-observation-probe` adds a checksum-gated Harmony observation hook, primitive snapshots, bounded output, and cleanup. PR #8 verified in-game: user screenshot and fresh on-disk log confirm the ALL PASS marker, simulation thread 16 versus Unity thread 1, and advancing idle/running time for generation 1 (operation duration 2,500,000 ns). Release build and existing desktop diagnostics pass. PR #8 merged. The local simulation diagnostic is now disabled, as are other diagnostics. Safe action injection and timing parity remain unproven.
 
-- 2026-11-07: PR #8 merge confirmed. Native action adapter diagnostic builds and existing desktop checks pass; verified in-game and RunNativeActionProbe now disabled (other diagnostics also off). It replaces only a marked one-flip program with a two-flip custom node. User screenshot and fresh on-disk log confirm two completed flips on simulation thread 16, each charged 400 operations, and ALL PASS. PR #9 is ready for review; merge remains user-controlled. Next: design nonblocking worker request delivery without bypassing native action completion or adding simulation/worker lock waits.
+- 2026-11-07: PR #8 merge confirmed. Native action adapter diagnostic builds and existing desktop checks pass; verified in-game and RunNativeActionProbe now disabled (other diagnostics also off). It replaces only a marked one-flip program with a two-flip custom node. User screenshot and fresh on-disk log confirm two completed flips on simulation thread 16, each charged 400 operations, and ALL PASS. PR #9 merged. Next: design nonblocking worker request delivery without bypassing native action completion or adding simulation/worker lock waits.
+
+- 2026-11-07: PR #9 merge confirmed. Branch `feat/action-command-transport` adds a per-run action mailbox and desktop Jint sequencing/lifecycle tests. Release build has zero warnings/errors; the full desktop suite passes. No game deployment/test is needed for this unwired transport change. All local in-game diagnostics remain disabled. User explicitly requested idiomatic TypeScript naming; recorded in AGENTS.md and design docs.
