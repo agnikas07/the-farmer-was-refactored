@@ -14,6 +14,7 @@ namespace TheFarmerWasRefactored
         private readonly string marker;
         private readonly string javascript;
         private readonly string label;
+        private readonly Func<string, string> compile;
         private static NativeActionProbe active;
         private readonly Harmony harmony = new Harmony(Plugin.Id + ".native-action-probe");
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
@@ -21,11 +22,12 @@ namespace TheFarmerWasRefactored
         private readonly int unityThread = Thread.CurrentThread.ManagedThreadId;
         private int claimed, disposed;
 
-        public NativeActionProbe(Action<string> report, string compiledJavaScript = null)
+        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, string> compile = null)
         {
             this.report = report;
+            this.compile = compile;
             javascript = compiledJavaScript ?? "doAFlip(); doAFlip();";
-            label = compiledJavaScript == null ? "JavaScript action probe" : "TypeScript action probe";
+            label = compile != null ? "TypeScript source probe" : compiledJavaScript == null ? "JavaScript action probe" : "TypeScript action probe";
             marker = compiledJavaScript == null ? "# refactored-javascript-probe\ndoAFlip()"
                 : "# refactored-typescript-probe\ndoAFlip()";
             using (var input = File.OpenRead(typeof(Node).Assembly.Location))
@@ -39,6 +41,9 @@ namespace TheFarmerWasRefactored
                 throw new InvalidOperationException("JavaScript action probe already installed.");
             try
             {
+                if (compile != null)
+                    harmony.Patch(AccessTools.Method(typeof(CodeWindow), "StartExecution", new[] { typeof(bool) }),
+                        prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeSourceRun)));
                 var target = AccessTools.Method(typeof(MainSim), "StartMainExecution",
                     new[] { typeof(CodeWindow), typeof(Node), typeof(bool) });
                 if (target == null) throw new MissingMethodException("StartMainExecution");
@@ -51,13 +56,38 @@ namespace TheFarmerWasRefactored
                     prefix: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.BeforeStop)));
             }
             catch { Dispose(); throw; }
-            report($"{label}: armed; run the marked two-line program in the normal farm.");
+            if (compile != null) report($"{label}: ready; Run a window beginning with // @refactored");
+            else report($"{label}: armed; run the marked two-line program in the normal farm.");
+        }
+
+        private static bool BeforeSourceRun(CodeWindow __instance, bool stepByStep)
+        {
+            var probe = Volatile.Read(ref active);
+            if (probe?.compile == null) return true;
+            var source = ReadSource(__instance);
+            if (!source.Replace("\r\n", "\n").StartsWith("// @refactored\n", StringComparison.Ordinal)) return true;
+            // This prefix runs on Unity's Run-button path, before the native parser.
+            if (stepByStep)
+            {
+                probe.messages.Enqueue($"{probe.label}: step mode is not supported; use ordinary Run.");
+                return false;
+            }
+            probe.messages.Enqueue($"{probe.label}: captured {source.Length} characters for this run");
+            MainSim.Inst.StopMainExecution();
+            MainSim.Inst.StartMainExecution(__instance, new FlipNode(__instance, probe, source), false);
+            return false;
+        }
+
+        private static string ReadSource(CodeWindow window)
+        {
+            var input = AccessTools.Property(typeof(CodeWindow), "CodeInput").GetValue(window);
+            return (string)AccessTools.Property(input.GetType(), "text").GetValue(input);
         }
 
         private static void BeforeStart(CodeWindow cw, ref Node syntaxTree, bool stepByStep)
         {
             var probe = Volatile.Read(ref active);
-            if (probe == null || cw == null || syntaxTree == null || stepByStep) return;
+            if (probe == null || probe.compile != null || cw == null || syntaxTree == null || stepByStep) return;
             try
             {
                 // Reflect UI text so no UI library needs to be redistributed or referenced here.
@@ -77,9 +107,13 @@ namespace TheFarmerWasRefactored
         private sealed class FlipNode : Node
         {
             private readonly NativeActionProbe probe;
-            public FlipNode(CodeWindow window, NativeActionProbe probe) : base(window, probe.marker.IndexOf("doAFlip", StringComparison.Ordinal), probe.marker.Length - 1)
+            private readonly string source;
+            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null)
+                : base(window, source == null ? probe.marker.IndexOf("doAFlip", StringComparison.Ordinal) : 0,
+                    (source ?? probe.marker).Length - 1)
             {
                 this.probe = probe;
+                this.source = source;
             }
 
             public override IEnumerable<double> Execute(ProgramState state, Execution execution, int depth)
@@ -95,7 +129,8 @@ namespace TheFarmerWasRefactored
                 state.CurrentExecutingNode = this;
                 var run = new JavaScriptActionRun(execution,
                     message => probe.messages.Enqueue(message.Replace("JavaScript action probe", probe.label)),
-                    probe.javascript);
+                    probe.javascript, source == null ? (Func<string>)null : () => probe.compile(source),
+                    source == null ? (int?)2 : null);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
                     run.Dispose();
@@ -107,7 +142,7 @@ namespace TheFarmerWasRefactored
             public override Node DeepCopy(Dictionary<object, object> copies)
             {
                 if (copies.TryGetValue(this, out var existing)) return (Node)existing;
-                var copy = new FlipNode(boxedParams.codeWindow, probe);
+                var copy = new FlipNode(boxedParams.codeWindow, probe, source);
                 copies[this] = copy;
                 return copy;
             }

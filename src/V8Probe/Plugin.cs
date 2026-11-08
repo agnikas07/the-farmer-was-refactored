@@ -20,6 +20,8 @@ namespace TheFarmerWasRefactored.V8Probe
 
         private void Awake()
         {
+            var sourceInput = Config.Bind("Diagnostics", "RunSourceInputProbe", false,
+                "Compile and run actual TypeScript from windows beginning with // @refactored.").Value;
             var nativeActions = Config.Bind("Diagnostics", "RunCompiledActionProbe", false,
                 "Compile a fixed TypeScript loop and arm two real native flips from the marked program.").Value;
             var useJint = Config.Bind("Diagnostics", "RunJintPipelineProbe", false,
@@ -35,6 +37,17 @@ namespace TheFarmerWasRefactored.V8Probe
             }
             var unityThread = Thread.CurrentThread.ManagedThreadId;
             var bundlePath = Path.Combine(Path.GetDirectoryName(Info.Location), "compiler-bundle.json");
+            if (sourceInput)
+            {
+                try
+                {
+                    var main = (global::TheFarmerWasRefactored.Plugin)Chainloader.PluginInfos[
+                        global::TheFarmerWasRefactored.Plugin.Id].Instance;
+                    actionProbe = main.ArmTypeScriptSourceProbe(source => ActionProgramCompiler.Compile(bundlePath, source));
+                }
+                catch (Exception error) { Logger.LogError($"TypeScript source probe FAILED: {error}"); }
+                return;
+            }
             compile = compile || useJint;
             var prefix = nativeActions ? "TypeScript action probe" : useJint ? "V8 to Jint game probe" : compile ? "V8 game compiler probe" : "V8 loader probe";
             Logger.LogInfo(prefix + ": starting worker");

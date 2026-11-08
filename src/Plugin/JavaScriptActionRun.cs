@@ -15,19 +15,29 @@ namespace TheFarmerWasRefactored
         private readonly CancellationTokenSource stop = new CancellationTokenSource();
         private readonly Action<string> report;
         private readonly Task worker;
+        private readonly int? expectedCalls;
         private int disposed, yields;
         internal bool YieldRequested;
         internal bool Waiting;
         internal bool NeedsWorker => Waiting && !mailbox.HasPending && !worker.IsCompleted
             && Volatile.Read(ref disposed) == 0;
 
-        internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();")
+        internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();",
+            Func<string> prepare = null, int? expectedCalls = 2)
         {
             Execution = execution;
+            this.expectedCalls = expectedCalls;
             this.report = report;
             stop.CancelAfter(TimeSpan.FromSeconds(30)); // Diagnostic watchdog, not action timing.
             worker = Task.Run(() =>
             {
+                stop.Token.ThrowIfCancellationRequested();
+                if (prepare != null)
+                {
+                    javascript = prepare();
+                    report("JavaScript action probe: source compiled");
+                }
+                stop.Token.ThrowIfCancellationRequested();
                 using (stop.Token.Register(mailbox.Dispose))
                 using (var engine = new Engine(options => options.CancellationToken(stop.Token)
                     .MaxStatements(100).LimitMemory(8_000_000).LimitRecursion(64)))
@@ -55,8 +65,9 @@ namespace TheFarmerWasRefactored
                         Waiting = false;
                         if (worker.IsFaulted)
                             report($"JavaScript action probe FAILED: {worker.Exception.GetBaseException().Message}");
-                        else if (worker.IsCanceled || completed != 2)
+                        else if (worker.IsCanceled || (expectedCalls.HasValue && completed != expectedCalls.Value))
                             report("JavaScript action probe: cancelled/incomplete");
+                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {completed} doAFlip calls");
                         else report("JavaScript action probe: two doAFlip calls completed ALL PASS");
                         yield break;
                     }

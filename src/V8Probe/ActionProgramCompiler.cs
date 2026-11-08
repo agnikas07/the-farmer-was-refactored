@@ -12,6 +12,15 @@ namespace TheFarmerWasRefactored.V8Probe
 
         internal static string Compile(string bundlePath)
         {
+            var javascript = Compile(bundlePath, Source);
+            JintOutputChecks.Run(javascript);
+            return javascript;
+        }
+
+        internal static string Compile(string bundlePath, string source)
+        {
+            if (source == null || source.Length > 32_768)
+                throw new ArgumentException("TypeScript source must be at most 32768 characters.");
             var bundle = JObject.Parse(File.ReadAllText(bundlePath));
             string javascript;
             using (var compiler = new V8ScriptEngine())
@@ -21,14 +30,13 @@ namespace TheFarmerWasRefactored.V8Probe
                 compiler.Execute("var libraries = new Map(" + bundle["libraries"].ToString(Formatting.None) + ");");
                 compiler.Execute("var apiText = " + JsonConvert.SerializeObject((string)bundle["api"]) + ";");
                 var json = (string)compiler.Evaluate("JSON.stringify(compile(" +
-                    JsonConvert.SerializeObject(Source) + ", libraries, apiText))");
+                    JsonConvert.SerializeObject(source) + ", libraries, apiText))");
                 var result = JObject.Parse(json);
                 if ((bool?)result["ok"] != true || result["javascript"]?.Type != JTokenType.String)
-                    throw new InvalidOperationException("Fixed TypeScript program failed compilation: " + json);
+                    throw new InvalidOperationException("TypeScript compilation failed: " + json);
                 javascript = (string)result["javascript"];
             }
-            // Prove exactly two stub calls and budget enforcement before arming native actions.
-            JintOutputChecks.Run(javascript);
+            // Never execute user source as a compilation preflight.
             return javascript;
         }
     }
