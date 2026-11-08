@@ -11,14 +11,15 @@ lessons that teach the new language while preserving the farming mechanics.
 [Progress & plans](PROJECT_STATUS.md) · [Development guide](docs/development.md) · [TypeScript example](examples/two-flips.ts)
 
 > 🌱 **Still growing.** This is a development prototype, not a playable release.
-> You cannot write TypeScript in the game's editor yet. There is no mod-store
-> package to install.
+> You can now run TypeScript from marked code windows through an opt-in
+> diagnostic. The editor overhaul is unfinished, and there is no mod-store package.
 
 ## A little taste of the harvest
 
-The compiler prototype already understands this:
+The source-input diagnostic can compile this and make the drone flip twice:
 
 ```typescript
+// @refactored
 const flipCount: number = 2;
 
 for (let index = 0; index < flipCount; index++) {
@@ -30,8 +31,15 @@ Two flips. Strong types. One very enthusiastic drone.
 
 Public APIs use TypeScript-style camelCase: `doAFlip()`, and eventually
 `canHarvest()`. The latter is a planned name, not an implemented binding.
-The example runs in desktop compiler/runtime tests; the game currently uses
-separate, opt-in diagnostic programs.
+The `// @refactored` first line currently selects TypeScript execution; without
+it, the game still uses its native language. It is a temporary diagnostic marker,
+not part of TypeScript or the intended finished experience. With source mode
+enabled, a single `doAFlip();` really does mean one flip.
+
+The editor still displays Python highlighting and may show misleading Python
+errors. TypeScript diagnostics currently appear in the BepInEx log. See the
+[source-input test instructions](docs/design/typescript-source-input.md) for
+setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 
 ## What's sprouted?
 
@@ -40,13 +48,15 @@ separate, opt-in diagnostic programs.
 | Plugin startup | Verified in the isolated development game |
 | JavaScript → native actions | Two flips and Stop verified in-game |
 | TypeScript checking | Strict type checking and source-map emission tested |
-| Compiled TypeScript → Jint | Seven desktop integration cases passing |
-| TypeScript editor & rewritten lessons | Planned |
+| Embedded compiler | TypeScript in V8 verified under Unity/Mono |
+| Compiled TypeScript → Jint → native actions | Completion and Stop verified in-game |
+| Actual code-window source | One/three flips, repeated Run, type-error rejection, recovery, and Stop verified |
+| TypeScript editor polish & rewritten lessons | Planned; Python indicators still appear |
 | Full farming API, modules & drones | Planned |
 | Playable release | Not yet |
 
 The current test environment is **CachyOS Linux running the Windows game through
-Proton**. Windows and macOS are intended targets, but remain untested.
+Proton**. Testing directly on Windows and macOS is still pending.
 The working diagnostics do not yet establish full gameplay or timing parity.
 
 ## Pull on your development boots
@@ -67,8 +77,11 @@ development prerequisites are set up, the
 [TypeScript-to-Jint check](docs/design/typescript-jint-pipeline.md) tests the emitted
 JavaScript against the staged runtime.
 
-Node is currently a **development tool**. How the compiler ships inside the mod
-is still being investigated; players should not need to install Node separately.
+Node is a **development tool** used to prepare the compiler bundle. The verified
+in-game diagnostic hosts TypeScript in ClearScript/V8 and executes the emitted
+JavaScript in Jint; the game does not launch Node. Release packaging and the final
+runtime choice remain open, including a known Jint labeled-loop issue tracked in
+[project status](PROJECT_STATUS.md).
 
 ## Find your patch of the field
 
@@ -76,6 +89,7 @@ is still being investigated; players should not need to install Node separately.
 | --- | --- |
 | [src/Plugin](src/Plugin) | C# game integration and native action diagnostics |
 | [src/Runtime](src/Runtime) | JavaScript runtime and command transport experiments |
+| [src/V8Probe](src/V8Probe) | Embedded compiler and source-input diagnostics |
 | [src/Compiler](src/Compiler) | TypeScript checking and JavaScript emission |
 | [examples](examples) | TypeScript examples for the compiler prototype |
 | [tests](tests) | Compiler, runtime, and integration checks |
