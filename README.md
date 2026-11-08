@@ -1,35 +1,95 @@
+![The Farmer was Refactored — a straw-hatted drone, floating code windows, and a field of golden crops](docs/assets/the-farmer-was-refactored.png)
+
 # The Farmer was Refactored
 
-A planned TypeScript language-system overhaul for **The Farmer Was Replaced**, including the in-game editor, execution controls, documentation, and tutorials.
+**Grow crops. Write TypeScript. Refactor the farm.**
 
-## Status
+An experimental language-system overhaul for **The Farmer Was Replaced**.
+The goal: play in TypeScript, with an editor, execution controls, and in-game
+lessons that teach the new language while preserving the farming mechanics.
 
-Start with [PROJECT_STATUS.md](PROJECT_STATUS.md) for project decisions, progress, next steps, and the issue/fix log. New agents should also read [AGENTS.md](AGENTS.md).
+[Progress & plans](PROJECT_STATUS.md) · [Development guide](docs/development.md) · [TypeScript example](examples/two-flips.ts)
 
-The startup plugin loads successfully in the isolated development game. A diagnostic JavaScript runtime probe is available; see [probe instructions](docs/design/runtime-probe.md). TypeScript execution and editor integration are not implemented yet.
+> 🌱 **Still growing.** This is a development prototype, not a playable release.
+> You cannot write TypeScript in the game's editor yet. There is no mod-store
+> package to install.
 
-Startup has been verified on CachyOS Linux using the Windows game through Proton. Windows and macOS are intended targets but have not been tested.
+## A little taste of the harvest
 
-## Development
+The compiler prototype already understands this:
 
-- Git and Node.js/npm are available on the development machine.
-- The local .NET SDK lives in `.tools/dotnet` (not tracked).
-- Run `source scripts/dev-env.sh` from the repository root to expose the local SDK in your shell.
-- Run `dotnet --info` to verify the SDK.
+```typescript
+const flipCount: number = 2;
 
-The plugin targets .NET Standard 2.1 and BepInEx 5.4.23.6. The SDK version is not the plugin runtime requirement.
+for (let index = 0; index < flipCount; index++) {
+  doAFlip();
+}
+```
 
-See [the development guide](docs/development.md) for setup, building, launching, and checking the startup log.
+Two flips. Strong types. One very enthusiastic drone.
 
-## Structure
+Public APIs use TypeScript-style camelCase: `doAFlip()`, and eventually
+`canHarvest()`. The latter is a planned name, not an implemented binding.
+The example runs in desktop compiler/runtime tests; the game currently uses
+separate, opt-in diagnostic programs.
 
-- `src/Plugin`: C# game integration.
-- `src/Runtime`: JavaScript execution and scheduling integration.
-- `src/Compiler`: TypeScript checking, compilation, and source mapping.
-- `docs/in-game`: rewritten player documentation.
-- `docs/design`: architecture decisions and milestones.
-- `examples`: player-facing TypeScript examples.
-- `tests`: compiler, runtime, and integration tests.
-- `packaging`: release packaging.
+## What's sprouted?
 
-Keep game assemblies, saves, credentials, and local tools out of Git. Runtime and compiler dependencies are not selected yet.
+| Piece | Where it stands |
+| --- | --- |
+| Plugin startup | Verified in the isolated development game |
+| JavaScript → native actions | Two flips and Stop verified in-game |
+| TypeScript checking | Strict type checking and source-map emission tested |
+| Compiled TypeScript → Jint | Seven desktop integration cases passing |
+| TypeScript editor & rewritten lessons | Planned |
+| Full farming API, modules & drones | Planned |
+| Playable release | Not yet |
+
+The current test environment is **CachyOS Linux running the Windows game through
+Proton**. Windows and macOS are intended targets, but remain untested.
+The working diagnostics do not yet establish full gameplay or timing parity.
+
+## Pull on your development boots
+
+For a fresh checkout, start with the [development guide](docs/development.md).
+It covers the local SDK, game references, building, and an isolated game copy so
+development stays separate from the normal installation.
+
+Want to try just the compiler? With Node.js and npm installed:
+
+```bash
+npm ci --ignore-scripts --cache .tools/npm-cache
+npm run test:compiler
+```
+
+That runs the 13 compiler tests without launching the game. Once the .NET/game
+development prerequisites are set up, the
+[TypeScript-to-Jint check](docs/design/typescript-jint-pipeline.md) tests the emitted
+JavaScript against the staged runtime.
+
+Node is currently a **development tool**. How the compiler ships inside the mod
+is still being investigated; players should not need to install Node separately.
+
+## Find your patch of the field
+
+| Directory | What's inside |
+| --- | --- |
+| [src/Plugin](src/Plugin) | C# game integration and native action diagnostics |
+| [src/Runtime](src/Runtime) | JavaScript runtime and command transport experiments |
+| [src/Compiler](src/Compiler) | TypeScript checking and JavaScript emission |
+| [examples](examples) | TypeScript examples for the compiler prototype |
+| [tests](tests) | Compiler, runtime, and integration checks |
+| [docs/design](docs/design) | Architecture findings and diagnostic instructions |
+| [docs/in-game](docs/in-game) | Future player lessons and reference material |
+| [packaging](packaging) | Future release packaging |
+
+## Help tend the project
+
+Small, focused changes are welcome. We aim for **200–400 changed lines per PR**
+when practical, and keep verification evidence separate from future plans.
+
+Read [AGENTS.md](AGENTS.md) for working conventions and
+[PROJECT_STATUS.md](PROJECT_STATUS.md) for the current handoff, decisions, bugs,
+and next steps. Keep game binaries, saves, credentials, and local tools out of Git.
+
+*The crops can stay. The snake_case is getting composted.*
