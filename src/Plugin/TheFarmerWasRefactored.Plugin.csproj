@@ -12,6 +12,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Runtime/TheFarmerWasRefactored.Runtime.csproj" />
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExDirectory)/core/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>$(BepInExDirectory)/core/BepInEx.dll</HintPath>
       <Private>false</Private>

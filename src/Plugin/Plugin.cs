@@ -18,10 +18,17 @@ namespace TheFarmerWasRefactored
 
         private CancellationTokenSource steppingStop;
         private DispatchProbe dispatchProbe;
+        private SimulationProbe simulationProbe;
 
         private void Awake()
         {
             Logger.LogInfo("The Farmer was Refactored loaded.");
+            if (Config.Bind("Diagnostics", "RunSimulationProbe", false,
+                "Observe native simulation ownership and time without mutations.").Value)
+            {
+                try { simulationProbe = new SimulationProbe(message => Logger.LogInfo(message)); }
+                catch (Exception error) { Logger.LogError($"Simulation probe disabled: {error}"); }
+            }
             Logger.LogInfo($"Plugin {Version}; game {Application.version}; Unity {Application.unityVersion}; platform {Application.platform}.");
             if (Config.Bind("Diagnostics", "RunRuntimeProbe", false,
                 "Run bounded JavaScript feasibility checks at startup. Development only.").Value)
@@ -62,6 +69,7 @@ namespace TheFarmerWasRefactored
 
         private void Update()
         {
+            simulationProbe?.Poll();
             if (dispatchProbe == null) return;
             try
             {
@@ -75,6 +83,7 @@ namespace TheFarmerWasRefactored
 
         private void OnDestroy()
         {
+            simulationProbe?.Dispose();
             dispatchProbe?.Dispose();
             try { steppingStop?.Cancel(); }
             catch (ObjectDisposedException) { } // The completion continuation won the race.
