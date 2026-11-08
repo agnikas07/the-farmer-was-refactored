@@ -1,0 +1,11 @@
+{
+  "name": "the-farmer-was-refactored",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:compiler": "node --test tests/Compiler/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}
