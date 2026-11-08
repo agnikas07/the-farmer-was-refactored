@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>TheFarmerWasRefactored.V8Probe</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <GameDirectory Condition="'$(GameDirectory)' == ''">$(MSBuildThisFileDirectory)../../.tools/game</GameDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1.1" />
+    <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x64" Version="7.5.1.1" GeneratePathProperty="true" />
+    <Reference Include="BepInEx">
+      <HintPath>$(GameDirectory)/BepInEx/core/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="StageNativeLibrary" AfterTargets="Build">
+    <Copy SourceFiles="$(PkgMicrosoft_ClearScript_V8_Native_win-x64)/runtimes/win-x64/native/ClearScriptV8.win-x64.dll"
+          DestinationFolder="$(TargetDir)" />
+  </Target>
+</Project>
