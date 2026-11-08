@@ -87,8 +87,8 @@ This is not evidence of TypeScript functionality, gameplay parity, or other-plat
 
 ## Next work, in small increments
 
-1. Review [PR #4](https://github.com/agnikas07/the-farmer-was-refactored/pull/4) and merge when authorized. Desktop and Unity/Mono checks pass for source stepping, preserved variables, resume, pause-running/stop-paused, and stop-running. See [stepping probe instructions](docs/design/stepping-probe.md).
-2. Next focused experiment: dispatch worker-script requests to the main thread and return results without blocking Unity. Simulation timing, nested stacks, drone isolation, pause-aware budgets, and source mapping remain open before selecting a production scheduler.
+1. Verify the opt-in dispatch probe in Unity/Mono. Desktop round-trip, error propagation, cancellation, owner-thread and capacity checks pass. See [dispatch instructions](docs/design/dispatch-probe.md). PR #4 merged; stepping was already verified in-game.
+2. Inspect actual game-action and simulation timing APIs before connecting this transport to farming. Long actions must be scheduled without blocking the main thread. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
 3. Prototype TypeScript checking/compilation and error/source mapping independently of the UI. Decide how to bundle the compiler.
 4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
 5. Expand API, progression, modules, drones, and teaching material together; validate broader behavior and platforms before packaging a release.
@@ -125,4 +125,6 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 
 - 2026-11-07: Runtime feasibility change on `feat/javascript-runtime-probe`. Desktop and Unity/Mono checks pass using the staged netstandard DLLs. PR #3 merged. The local opt-in diagnostic has been disabled after verification. Check GitHub for current PR state.
 
-- 2026-11-07: `feat/runtime-stepping-probe` adds a diagnostic worker-thread checkpoint gate and nonblocking Unity polling. Desktop and Unity/Mono checks pass. User screenshot and the fresh on-disk log confirm all four checks and `Stepping probe: ALL PASS` on 2026-11-07. The local diagnostic is now disabled. PR #4 is ready for review, not merged. No game actions or tick scheduler are implemented.
+- 2026-11-07: `feat/runtime-stepping-probe` adds a diagnostic worker-thread checkpoint gate and nonblocking Unity polling. Desktop and Unity/Mono checks pass. User screenshot and the fresh on-disk log confirm all four checks and `Stepping probe: ALL PASS` on 2026-11-07. The local diagnostic is now disabled. PR #4 merged. No game actions or tick scheduler are implemented.
+
+- 2026-11-07: `feat/main-thread-dispatch-probe` adds a single-slot request/result transport and an opt-in Update-driven diagnostic. Desktop checks pass; Unity/Mono verification is pending. The local dispatch diagnostic is enabled for the next launch; previous diagnostics remain disabled. No farming actions are called.
