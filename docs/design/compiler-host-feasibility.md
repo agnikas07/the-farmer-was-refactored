@@ -7,8 +7,9 @@ is not yet usable there. The same lib.es2020.d.ts source yields nine
 libReferenceDirectives under Node and zero under Jint. Compilation then reports
 missing global types such as Array and String.
 
-This is an observed host compatibility mismatch, not a diagnosed Jint bug.
-The underlying cause remains unknown. Do not ship this path, suppress its errors,
+The mismatch has now been reduced to labeled-loop continue behavior in Jint;
+see the [minimal reproduction](loop-control-reproduction.md). An isolated scanner
+experiment restored reference discovery, but no workaround is shipped. Do not ship this path, suppress its errors,
 or claim semantic checking works merely because the compiler script loaded.
 
 ## Reproduce
@@ -57,9 +58,9 @@ errors. No workaround has been applied to the compiler or runtime.
 
 ## Next decision
 
-Reduce reference/comment scanning to a minimal reproduction before attributing a
-root cause. If it requires substantial engine changes, compare another embeddable
-JavaScript host against the same semantic checks. Native dependencies would need
+The minimal reproduction now isolates a labeled-loop continue defect; both
+4.17.0 and an isolated 4.16.4 comparison fail it. Compare another embeddable
+JavaScript host against the same semantic checks, or evaluate an upstream fix. Native dependencies would need
 Windows/macOS/Linux packaging and Unity compatibility evidence.
 
 This result does not invalidate Jint's tested execution of generated player code.
