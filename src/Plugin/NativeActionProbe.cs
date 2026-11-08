@@ -11,7 +11,9 @@ namespace TheFarmerWasRefactored
     // Opt-in JavaScript-to-native action diagnostic, not a player language.
     internal sealed class NativeActionProbe : IDisposable
     {
-        private const string Marker = "# refactored-javascript-probe\ndoAFlip()";
+        private readonly string marker;
+        private readonly string javascript;
+        private readonly string label;
         private static NativeActionProbe active;
         private readonly Harmony harmony = new Harmony(Plugin.Id + ".native-action-probe");
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
@@ -19,9 +21,13 @@ namespace TheFarmerWasRefactored
         private readonly int unityThread = Thread.CurrentThread.ManagedThreadId;
         private int claimed, disposed;
 
-        public NativeActionProbe(Action<string> report)
+        public NativeActionProbe(Action<string> report, string compiledJavaScript = null)
         {
             this.report = report;
+            javascript = compiledJavaScript ?? "doAFlip(); doAFlip();";
+            label = compiledJavaScript == null ? "JavaScript action probe" : "TypeScript action probe";
+            marker = compiledJavaScript == null ? "# refactored-javascript-probe\ndoAFlip()"
+                : "# refactored-typescript-probe\ndoAFlip()";
             using (var input = File.OpenRead(typeof(Node).Assembly.Location))
             using (var sha = SHA256.Create())
             {
@@ -45,7 +51,7 @@ namespace TheFarmerWasRefactored
                     prefix: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.BeforeStop)));
             }
             catch { Dispose(); throw; }
-            report("JavaScript action probe: armed; run the marked two-line program in the normal farm.");
+            report($"{label}: armed; run the marked two-line program in the normal farm.");
         }
 
         private static void BeforeStart(CodeWindow cw, ref Node syntaxTree, bool stepByStep)
@@ -57,21 +63,21 @@ namespace TheFarmerWasRefactored
                 // Reflect UI text so no UI library needs to be redistributed or referenced here.
                 var input = AccessTools.Property(typeof(CodeWindow), "CodeInput").GetValue(cw);
                 var source = (string)AccessTools.Property(input.GetType(), "text").GetValue(input);
-                if (source.Replace("\r\n", "\n").Trim() != Marker) return;
+                if (source.Replace("\r\n", "\n").Trim() != probe.marker) return;
                 if (Interlocked.CompareExchange(ref probe.claimed, 1, 0) != 0) return;
                 syntaxTree = new FlipNode(cw, probe);
-                probe.messages.Enqueue("JavaScript action probe: custom node selected; expecting JavaScript doAFlip(); doAFlip();.");
+                probe.messages.Enqueue($"{probe.label}: custom node selected; expecting two doAFlip calls.");
             }
             catch (Exception error)
             {
-                probe.messages.Enqueue($"JavaScript action probe FAILED: {error.GetType().Name}: {error.Message}");
+                probe.messages.Enqueue($"{probe.label} FAILED: {error.GetType().Name}: {error.Message}");
             }
         }
 
         private sealed class FlipNode : Node
         {
             private readonly NativeActionProbe probe;
-            public FlipNode(CodeWindow window, NativeActionProbe probe) : base(window, Marker.IndexOf("doAFlip", StringComparison.Ordinal), Marker.Length - 1)
+            public FlipNode(CodeWindow window, NativeActionProbe probe) : base(window, probe.marker.IndexOf("doAFlip", StringComparison.Ordinal), probe.marker.Length - 1)
             {
                 this.probe = probe;
             }
@@ -83,11 +89,13 @@ namespace TheFarmerWasRefactored
                 if (thread == probe.unityThread || execution.sim.leaderboardType != LeaderboardType.none
                     || execution.States.Count != 1 || state.DroneId != 0 || execution.sim.simRunner.GetType() != typeof(MainSim))
                 {
-                    probe.messages.Enqueue("JavaScript action probe FAILED: requires one drone in a normal farm on the simulation thread.");
+                    probe.messages.Enqueue($"{probe.label} FAILED: requires one drone in a normal farm on the simulation thread.");
                     yield break;
                 }
                 state.CurrentExecutingNode = this;
-                var run = new JavaScriptActionRun(execution, probe.messages.Enqueue);
+                var run = new JavaScriptActionRun(execution,
+                    message => probe.messages.Enqueue(message.Replace("JavaScript action probe", probe.label)),
+                    probe.javascript);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
                     run.Dispose();

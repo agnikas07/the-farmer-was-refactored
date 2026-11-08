@@ -4,6 +4,8 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 source scripts/dev-env.sh
 mkdir -p .tools/runtime
 chmod 700 .tools/runtime
+# The diagnostic now calls the main plugin after successful compilation.
+XDG_RUNTIME_DIR="$PWD/.tools/runtime" bash scripts/deploy-dev.sh
 XDG_RUNTIME_DIR="$PWD/.tools/runtime" dotnet build \
   src/V8Probe/TheFarmerWasRefactored.V8Probe.csproj -c Release -p:RestoreLockedMode=true
 mkdir -p work/compiler-host
@@ -33,6 +35,8 @@ for name in ('LICENSE.txt', 'ThirdPartyNoticeText.txt'):
     shutil.copy2(Path('node_modules/typescript') / name, ts_notices)
 packages = json.loads(Path('src/V8Probe/packages.lock.json').read_text())
 for name, package in packages['dependencies']['.NETStandard,Version=v2.1'].items():
+    if package['type'] == 'Project':
+        continue
     root = Path(os.environ['NUGET_PACKAGES']) / name.lower() / package['resolved']
     notices = stage / 'licenses' / name
     for source in root.iterdir():
