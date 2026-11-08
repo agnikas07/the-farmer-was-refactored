@@ -1,5 +1,8 @@
 # Native action adapter feasibility
 
+Historical PR #9 evidence: the current diagnostic is the
+[JavaScript action probe](javascript-action-probe.md); use its trigger and test steps.
+
 This opt-in diagnostic substitutes a fixed custom Node for one marked program.
 It tests whether a mod-owned command source can use native execution scheduling.
 It does not yet execute TypeScript or accept JavaScript worker requests.

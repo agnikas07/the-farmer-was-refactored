@@ -39,7 +39,8 @@ guards, cancellation before/after claim, stopped-run rejection, and host failure
 The tests reference the staged netstandard runtime DLL used by the plugin.
 
 Run bash scripts/test-runtime.sh. No game launch is required for this isolated
-transport change. Unity/Mono transport validation and native wiring remain pending.
+transport change. Unity/Mono transport validation remains pending. The opt-in
+[JavaScript action probe](javascript-action-probe.md) now wires a diagnostic adapter.
 
 Before connecting the worker, define a scheduler yield when no command is ready:
 repeated zero-cost native iterator yields can spin without advancing simulated
