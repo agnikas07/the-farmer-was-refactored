@@ -12,6 +12,14 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Runtime/TheFarmerWasRefactored.Runtime.csproj" />
+    <Reference Include="Utils">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Core">
+      <HintPath>$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="0Harmony">
       <HintPath>$(BepInExDirectory)/core/0Harmony.dll</HintPath>
       <Private>false</Private>
