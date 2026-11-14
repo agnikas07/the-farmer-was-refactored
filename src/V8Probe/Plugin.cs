@@ -22,7 +22,9 @@ namespace TheFarmerWasRefactored.V8Probe
         private void Awake()
         {
             var sourceInput = Config.Bind("Diagnostics", "RunSourceInputProbe", false,
-                "Compile and run actual TypeScript from windows beginning with // @refactored.").Value;
+                "Compile and run actual TypeScript from code windows.").Value;
+            var allWindows = Config.Bind("Language", "TypeScriptForAllWindows", false,
+                "Use TypeScript in every code window without a marker. Requires Enabled and RunSourceInputProbe; restart to change. Existing Python code is not converted.").Value;
             var nativeActions = Config.Bind("Diagnostics", "RunCompiledActionProbe", false,
                 "Compile a fixed TypeScript loop and arm two real native flips from the marked program.").Value;
             var useJint = Config.Bind("Diagnostics", "RunJintPipelineProbe", false,
@@ -30,7 +32,7 @@ namespace TheFarmerWasRefactored.V8Probe
             var compile = Config.Bind("Diagnostics", "RunCompilerProbe", false,
                 "Compile trusted TypeScript fixtures on the V8 worker; no farm actions.").Value;
             if (!Config.Bind("Diagnostics", "Enabled", false,
-                "Load Windows x64 V8 on a worker. Development-only; action mode requires a marked program.").Value) return;
+                "Load Windows x64 V8 on a worker. Development-only; source mode follows the Language settings.").Value) return;
             if (Environment.OSVersion.Platform != PlatformID.Win32NT || !Environment.Is64BitProcess)
             {
                 Logger.LogError("V8 loader probe: requires a Windows x64 process (including Proton).");
@@ -45,7 +47,7 @@ namespace TheFarmerWasRefactored.V8Probe
                     var main = (global::TheFarmerWasRefactored.Plugin)Chainloader.PluginInfos[
                         global::TheFarmerWasRefactored.Plugin.Id].Instance;
                     compilerWorker = new CompilerWorker(bundlePath, messages.Enqueue);
-                    actionProbe = main.ArmTypeScriptSourceProbe(compilerWorker.Compile);
+                    actionProbe = main.ArmTypeScriptSourceProbe(compilerWorker.Compile, allWindows);
                 }
                 catch (Exception error) { compilerWorker?.Dispose(); Logger.LogError($"TypeScript source probe FAILED: {error}"); }
                 return;

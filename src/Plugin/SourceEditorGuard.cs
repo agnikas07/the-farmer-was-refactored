@@ -20,11 +20,15 @@ namespace TheFarmerWasRefactored
         private static readonly MethodInfo CloseError = AccessTools.Method(typeof(CodeWindow), "CloseError")
             ?? throw new MissingMethodException("CodeWindow.CloseError");
 
+        private static bool allWindows;
+
         internal static bool IsTypeScript(string source) =>
+            allWindows ||
             source.Replace("\r\n", "\n").StartsWith("// @refactored\n", StringComparison.Ordinal);
 
-        internal static void Install(Harmony harmony)
+        internal static void Install(Harmony harmony, bool useAllWindows = false)
         {
+            allWindows = useAllWindows;
             // Resolve private fields before patching so incompatible builds fail at installation.
             _ = ParseLock; _ = CachedProgram; _ = ParseException; _ = Dirty; _ = CloseError;
             harmony.Patch(AccessTools.Method(typeof(CodeWindow), "Parse"),
@@ -73,6 +77,7 @@ namespace TheFarmerWasRefactored
 
         internal static void Reset()
         {
+            allWindows = false;
             foreach (var entry in errors)
                 if (entry.Key != null && entry.Value.Error != null
                     && (string)ErrorString.GetValue(entry.Key) == entry.Value.Error.DisplayMessage)
