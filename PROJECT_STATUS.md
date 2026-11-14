@@ -107,8 +107,8 @@ production timing parity or complete language correctness.
 4. Add typed directions and `move()`, then extend the lesson to farm traversal.
 5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
 
-The canHarvest and harvest increments are merged (#29–30); the current PR
-implements step 3, the first lesson. No move binding yet. Each subsequent step gets its own review and appropriate game testing.
+The farm queries/actions and first lesson are merged (#29–31). The current PR
+implements typed movement in step 4; the traversal lesson follows separately. Each subsequent step gets its own review and appropriate game testing.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
@@ -244,3 +244,7 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - PR #31 marker-mode check: screenshot confirms marker insertion and explanatory text; user confirms the full marked example clears the expected native error on previously unmarked saved code and runs one flip. All local diagnostic flags now disabled (TypeScriptForAllWindows already false) for the pending original-page restoration check after restart.
 
 - 2026-11-14: PR #31 restoration check passed: screenshots show the original First Program page after disabling source mode and restarting. Manual checks now cover visible lesson layout in both modes, home navigation, first-example execution, and original-page restoration. Full-page layout across languages/window sizes and the tech-tree link were not separately verified. Local diagnostics remain disabled. PR prepared for review, not merged; next planned feature is typed directions and move().
+
+- 2026-11-14: PR #31 merge confirmed at 3a28313. Branch `feat/typed-movement` adds Direction string-literal typing and move(): boolean through native scheduling. Runtime rejects invalid values before queuing; only strings cross the mailbox. [Design/checks](docs/design/typed-movement.md). Native costs, mapping, wrapping, and blocked/locked cases pending. User currently has one grass tile; visible traversal may not be testable yet.
+
+- Typed movement validation: both locked builds pass without warnings/errors; 18 compiler/lesson tests and runtime/mailbox/movement/stepping/dispatch suites pass. Deployed with Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true. No native movement result claimed yet.
