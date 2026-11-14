@@ -46,5 +46,25 @@ and Stop still work before marking the PR ready. Disable source mode after testi
 Desktop tests pass for reuse, changed action counts, source-declaration isolation,
 semantic rejection/recovery, cancellation while the owner is occupied, worker-thread
 ownership, disposal, and initialization failure. Existing runtime/compiler suites
-pass. In-game performance and lifecycle validation are pending; no measured speedup
-is claimed yet. Other diagnostic modes retain their fresh-engine compiler behavior.
+pass. The first in-game timing comparison passed; changed-source, error/recovery,
+and Stop checks remain pending. Other diagnostic modes retain their fresh-engine compiler behavior.
+
+
+## First in-game measurements (2026-11-13)
+
+User-pasted output and fresh BepInEx log confirm one compiler initialization
+(thread 8), three one-flip runs at 400 operations, and action-worker release.
+
+| Capture to native binding return | Fresh compiler baseline | Reused compiler |
+| --- | ---: | ---: |
+| Run 1 | 1010.28 ms | 426.34 ms |
+| Run 2 | 676.99 ms | 150.35 ms |
+| Run 3 | 676.91 ms | 133.55 ms |
+
+Repeated-run delay fell approximately 78–80% in this small sample. Compiler
+checking/emission took 279.96 / 145.26 / 128.40 ms. Initial compiler loading
+now happens before Run; this comparison does not measure total game startup.
+The native action interval remained about one second. These observations are
+not statistical guarantees or first-rendered-frame measurements. Action-worker
+release does not prove compiler-thread shutdown; that lifetime remains distinct.
+PR #26 remains draft pending the remaining manual checks; source mode stays enabled.
