@@ -7,7 +7,7 @@ using TheFarmerWasRefactored.Runtime;
 
 namespace TheFarmerWasRefactored
 {
-    // Diagnostic only: one worker, one native execution, two commands.
+    // Diagnostic only: one worker and one native execution.
     internal sealed class JavaScriptActionRun : IDisposable
     {
         internal readonly Execution Execution;
@@ -51,6 +51,11 @@ namespace TheFarmerWasRefactored
                         if (++requests == 1) timing?.Mark("first_request");
                         mailbox.DoAFlip();
                     }));
+                    engine.SetValue("canHarvest", new Func<bool>(() =>
+                    {
+                        if (++requests == 1) timing?.Mark("first_request");
+                        return mailbox.CanHarvest();
+                    }));
                     timing?.Mark("player_ready");
                     engine.Execute(javascript);
                 }
@@ -65,6 +70,8 @@ namespace TheFarmerWasRefactored
         internal IEnumerable<double> Commands(Node node, ProgramState state)
         {
             var completed = 0;
+            var flips = 0;
+            var queries = 0;
             while (Volatile.Read(ref disposed) == 0)
             {
                 if (!mailbox.TryClaim(out var ticket))
@@ -76,7 +83,7 @@ namespace TheFarmerWasRefactored
                             report($"JavaScript action probe FAILED: {worker.Exception.GetBaseException().Message}");
                         else if (worker.IsCanceled || (expectedCalls.HasValue && completed != expectedCalls.Value))
                             report("JavaScript action probe: cancelled/incomplete");
-                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {completed} doAFlip calls");
+                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {flips} doAFlip calls; {queries} canHarvest calls");
                         else report("JavaScript action probe: two doAFlip calls completed ALL PASS");
                         yield break;
                     }
@@ -89,21 +96,29 @@ namespace TheFarmerWasRefactored
                 }
                 if (completed == 0) timing?.Mark("first_claim");
                 var before = state.OpCount;
-                state.currentDependencies.Add(("do_a_flip", node.boxedParams.wordStart, node.boxedParams.wordEnd));
-                var ops = BuiltinFunctions.Functions["do_a_flip"].binding(
+                var query = ticket.Action == ActionMailbox.Command.CanHarvest;
+                var nativeName = query ? "can_harvest" : "do_a_flip";
+                state.currentDependencies.Add((nativeName, node.boxedParams.wordStart, node.boxedParams.wordEnd));
+                var ops = BuiltinFunctions.Functions[nativeName].binding(
                     new List<IPyObject>(), Execution.sim, Execution, state.DroneId);
                 if (completed == 0) timing?.Mark("first_binding_returned");
                 if (node.CheckIncrementOpCount(state, Execution, ops)) yield return 0;
                 var charged = state.OpCount - before;
-                if (state.currentSideEffect != SideEffect.None || !(state.ReturnValue is PyNone) || charged <= 0)
+                if (state.currentSideEffect != SideEffect.None || (query ? !(state.ReturnValue is PyBool) : !(state.ReturnValue is PyNone)) || charged <= 0)
                 {
                     mailbox.Fail(ticket, new InvalidOperationException("Unexpected native completion."));
                     yield break;
                 }
-                if (!mailbox.Complete(ticket)) yield break;
+                var result = query && ((PyBool)state.ReturnValue).num != 0;
+                if (!mailbox.Complete(ticket, result)) yield break;
                 completed++;
                 if (completed == 1) timing?.Mark("first_action_completed");
-                report($"JavaScript action probe: doAFlip={completed} chargedOps={charged}");
+                if (query)
+                {
+                    queries++;
+                    report($"JavaScript action probe: canHarvest={result.ToString().ToLowerInvariant()} chargedOps={charged}");
+                }
+                else report($"JavaScript action probe: doAFlip={++flips} chargedOps={charged}");
             }
         }
 

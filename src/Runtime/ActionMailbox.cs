@@ -8,7 +8,7 @@ namespace TheFarmerWasRefactored.Runtime
     // Only the JavaScript worker waits; claim and completion never wait on it.
     public sealed class ActionMailbox : IDisposable
     {
-        public enum Command { DoAFlip }
+        public enum Command { DoAFlip, CanHarvest }
 
         public sealed class Ticket
         {
@@ -30,7 +30,11 @@ namespace TheFarmerWasRefactored.Runtime
         }
 
         // Bind as doAFlip in JavaScript. Native names belong only in the adapter.
-        public void DoAFlip()
+        public void DoAFlip() => Request(Command.DoAFlip);
+
+        public bool CanHarvest() => Request(Command.CanHarvest);
+
+        private bool Request(Command command)
         {
             if (Thread.CurrentThread.ManagedThreadId == owner)
                 throw new InvalidOperationException("The simulation owner must not wait on itself.");
@@ -39,9 +43,9 @@ namespace TheFarmerWasRefactored.Runtime
             {
                 if (stopped) throw new OperationCanceledException("Action run stopped.");
                 if (current != null) throw new InvalidOperationException("An action is already outstanding.");
-                current = ticket = new Ticket(Command.DoAFlip);
+                current = ticket = new Ticket(command);
             }
-            ticket.Result.Task.GetAwaiter().GetResult();
+            return ticket.Result.Task.GetAwaiter().GetResult();
         }
 
         public bool TryClaim(out Ticket ticket)
@@ -59,9 +63,9 @@ namespace TheFarmerWasRefactored.Runtime
 
         // Call only when native scheduling resumes AFTER the action cost gate.
         // A claim alone must never release the worker.
-        public bool Complete(Ticket ticket)
+        public bool Complete(Ticket ticket, bool result = true)
         {
-            return Finish(ticket, null);
+            return Finish(ticket, null, result);
         }
 
         public bool Fail(Ticket ticket, Exception error)
@@ -70,14 +74,14 @@ namespace TheFarmerWasRefactored.Runtime
             return Finish(ticket, error);
         }
 
-        private bool Finish(Ticket ticket, Exception error)
+        private bool Finish(Ticket ticket, Exception error, bool result = false)
         {
             AssertOwner();
             lock (gate)
             {
                 if (stopped || ticket == null || ticket != current || !ticket.Claimed) return false;
                 current = null;
-                if (error == null) ticket.Result.TrySetResult(true);
+                if (error == null) ticket.Result.TrySetResult(result);
                 else ticket.Result.TrySetException(error);
                 return true;
             }

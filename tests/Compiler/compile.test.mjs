@@ -55,3 +55,16 @@ test("compilations do not leak globals or stale successful output", () => {
   assert.equal(compile("oldValue;").ok, false);
   assert.equal(compile("doAFlip();").ok, true);
 });
+
+test("canHarvest returns a strict boolean and selects the correct branch", () => {
+  const result = compile("const ready: boolean = canHarvest(); if (ready) doAFlip();");
+  assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
+  for (const ready of [false, true]) {
+    let flips = 0;
+    runInNewContext(result.javascript, { canHarvest: () => ready, doAFlip: () => flips++ });
+    assert.equal(flips, ready ? 1 : 0);
+  }
+  for (const source of ["const value: number = canHarvest();", "canHarvest(1);", "can_harvest();"]) {
+    assert.equal(compile(source).ok, false, source);
+  }
+});

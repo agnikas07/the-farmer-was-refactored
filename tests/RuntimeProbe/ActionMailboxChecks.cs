@@ -77,6 +77,42 @@ internal static class ActionMailboxChecks
             Check(mailbox.Fail(ticket, expected), "Failure rejected.");
             Join(worker);
         }
+        foreach (var ready in new[] { false, true })
+        using (var mailbox = new ActionMailbox())
+        {
+            var worker = Task.Run(() =>
+            {
+                using var engine = new Engine(options => options.MaxStatements(100));
+                engine.SetValue("canHarvest", new Func<bool>(mailbox.CanHarvest));
+                engine.SetValue("doAFlip", new Action(mailbox.DoAFlip));
+                engine.Execute("const ready = canHarvest(); if (ready) doAFlip();");
+                Check(engine.Evaluate("ready").AsBoolean() == ready, "Boolean result changed.");
+                Check(engine.Evaluate("typeof can_harvest").AsString() == "undefined", "Native alias leaked.");
+            });
+            Wait(() => mailbox.HasPending);
+            Check(mailbox.TryClaim(out var query), "Missing query.");
+            Check(query.Action == ActionMailbox.Command.CanHarvest, "Wrong query command.");
+            Check(!worker.IsCompleted, "Query returned before native completion.");
+            Check(mailbox.Complete(query, ready), "Query completion rejected.");
+            if (ready)
+            {
+                Wait(() => mailbox.HasPending);
+                Check(mailbox.TryClaim(out var flip), "Missing conditional flip.");
+                Check(flip.Action == ActionMailbox.Command.DoAFlip, "Wrong conditional command.");
+                Check(!mailbox.Complete(query, false), "Stale query result accepted.");
+                Check(mailbox.Complete(flip), "Conditional flip rejected.");
+            }
+            Join(worker);
+        }
+        using (var mailbox = new ActionMailbox())
+        {
+            var worker = Task.Run(() => Expect<OperationCanceledException>(() => mailbox.CanHarvest()));
+            Wait(() => mailbox.HasPending);
+            mailbox.Dispose();
+            Check(!mailbox.TryClaim(out _), "Cancelled query was claimed.");
+            Join(worker);
+        }
+        Console.WriteLine("Action mailbox: boolean query branching and cancellation PASS");
         Console.WriteLine("Action mailbox: camelCase JS sequencing, completion gate, cancellation, identity and failure PASS");
     }
 
