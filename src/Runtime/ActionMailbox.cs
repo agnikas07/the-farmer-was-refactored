@@ -8,15 +8,16 @@ namespace TheFarmerWasRefactored.Runtime
     // Only the JavaScript worker waits; claim and completion never wait on it.
     public sealed class ActionMailbox : IDisposable
     {
-        public enum Command { DoAFlip, CanHarvest, Harvest }
+        public enum Command { DoAFlip, CanHarvest, Harvest, Move }
 
         public sealed class Ticket
         {
             public Command Action { get; }
+            public string Direction { get; }
             internal readonly TaskCompletionSource<bool> Result =
                 new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             internal bool Claimed;
-            internal Ticket(Command action) { Action = action; }
+            internal Ticket(Command action, string direction) { Action = action; Direction = direction; }
         }
 
         private readonly object gate = new object();
@@ -36,7 +37,14 @@ namespace TheFarmerWasRefactored.Runtime
 
         public bool Harvest() => Request(Command.Harvest);
 
-        private bool Request(Command command)
+        public bool Move(string direction)
+        {
+            if (direction != "north" && direction != "east" && direction != "south" && direction != "west")
+                throw new ArgumentException("Direction must be north, east, south, or west.", nameof(direction));
+            return Request(Command.Move, direction);
+        }
+
+        private bool Request(Command command, string direction = null)
         {
             if (Thread.CurrentThread.ManagedThreadId == owner)
                 throw new InvalidOperationException("The simulation owner must not wait on itself.");
@@ -45,7 +53,7 @@ namespace TheFarmerWasRefactored.Runtime
             {
                 if (stopped) throw new OperationCanceledException("Action run stopped.");
                 if (current != null) throw new InvalidOperationException("An action is already outstanding.");
-                current = ticket = new Ticket(command);
+                current = ticket = new Ticket(command, direction);
             }
             return ticket.Result.Task.GetAwaiter().GetResult();
         }

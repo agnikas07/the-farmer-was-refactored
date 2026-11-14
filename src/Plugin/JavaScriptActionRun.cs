@@ -61,6 +61,10 @@ namespace TheFarmerWasRefactored
                         if (++requests == 1) timing?.Mark("first_request");
                         return mailbox.Harvest();
                     }));
+                    MovementApi.Bind(engine, mailbox, () =>
+                    {
+                        if (++requests == 1) timing?.Mark("first_request");
+                    });
                     timing?.Mark("player_ready");
                     engine.Execute(javascript);
                 }
@@ -78,6 +82,7 @@ namespace TheFarmerWasRefactored
             var flips = 0;
             var queries = 0;
             var harvests = 0;
+            var moves = 0;
             while (Volatile.Read(ref disposed) == 0)
             {
                 if (!mailbox.TryClaim(out var ticket))
@@ -89,7 +94,7 @@ namespace TheFarmerWasRefactored
                             report($"JavaScript action probe FAILED: {worker.Exception.GetBaseException().Message}");
                         else if (worker.IsCanceled || (expectedCalls.HasValue && completed != expectedCalls.Value))
                             report("JavaScript action probe: cancelled/incomplete");
-                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {flips} doAFlip calls; {queries} canHarvest calls; {harvests} harvest calls");
+                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {flips} doAFlip calls; {queries} canHarvest calls; {harvests} harvest calls; {moves} move calls");
                         else report("JavaScript action probe: two doAFlip calls completed ALL PASS");
                         yield break;
                     }
@@ -104,17 +109,28 @@ namespace TheFarmerWasRefactored
                 var before = state.OpCount;
                 var query = ticket.Action == ActionMailbox.Command.CanHarvest;
                 var harvesting = ticket.Action == ActionMailbox.Command.Harvest;
-                var returnsBoolean = query || harvesting;
+                var moving = ticket.Action == ActionMailbox.Command.Move;
+                var returnsBoolean = query || harvesting || moving;
                 var nativeName = ticket.Action switch
                 {
                     ActionMailbox.Command.DoAFlip => "do_a_flip",
                     ActionMailbox.Command.CanHarvest => "can_harvest",
                     ActionMailbox.Command.Harvest => "harvest",
+                    ActionMailbox.Command.Move => "move",
                     _ => throw new InvalidOperationException("Unsupported farm command.")
                 };
                 state.currentDependencies.Add((nativeName, node.boxedParams.wordStart, node.boxedParams.wordEnd));
+                var arguments = new List<IPyObject>();
+                if (moving) arguments.Add(ticket.Direction switch
+                {
+                    "north" => PyGridDirection.North,
+                    "east" => PyGridDirection.East,
+                    "south" => PyGridDirection.South,
+                    "west" => PyGridDirection.West,
+                    _ => throw new InvalidOperationException("Invalid movement direction.")
+                });
                 var ops = BuiltinFunctions.Functions[nativeName].binding(
-                    new List<IPyObject>(), Execution.sim, Execution, state.DroneId);
+                    arguments, Execution.sim, Execution, state.DroneId);
                 if (completed == 0) timing?.Mark("first_binding_returned");
                 if (node.CheckIncrementOpCount(state, Execution, ops)) yield return 0;
                 var charged = state.OpCount - before;
@@ -136,6 +152,11 @@ namespace TheFarmerWasRefactored
                 {
                     harvests++;
                     report($"JavaScript action probe: harvest={result.ToString().ToLowerInvariant()} chargedOps={charged}");
+                }
+                else if (moving)
+                {
+                    moves++;
+                    report($"JavaScript action probe: move({ticket.Direction})={result.ToString().ToLowerInvariant()} chargedOps={charged}");
                 }
                 else report($"JavaScript action probe: doAFlip={++flips} chargedOps={charged}");
             }

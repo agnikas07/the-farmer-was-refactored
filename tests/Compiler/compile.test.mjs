@@ -87,3 +87,19 @@ test("harvest returns a boolean and preserves query/action order", () => {
     assert.equal(compile(source).ok, false, source);
   }
 });
+
+test("movement accepts typed cardinal directions and returns boolean", () => {
+  const result = compile('const directions: Direction[] = ["north", "east", "south", "west"]; for (const direction of directions) { const moved: boolean = move(direction); if (moved) doAFlip(); }');
+  assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
+  const directions = [];
+  let flips = 0;
+  runInNewContext(result.javascript, {
+    move: direction => { directions.push(direction); return direction === "east"; },
+    doAFlip: () => flips++,
+  });
+  assert.deepEqual(directions, ["north", "east", "south", "west"]);
+  assert.equal(flips, 1);
+  for (const source of ['move("North");', 'move("up");', 'move(1);', 'move();', 'move("north", "east");', 'const value: number = move("north");']) {
+    assert.equal(compile(source).ok, false, source);
+  }
+});

@@ -107,8 +107,14 @@ production timing parity or complete language correctness.
 4. Add typed directions and `move()`, then extend the lesson to farm traversal.
 5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
 
-The canHarvest and harvest increments are merged (#29–30); the current PR
-implements step 3, the first lesson. No move binding yet. Each subsequent step gets its own review and appropriate game testing.
+The farm queries/actions and first lesson are merged (#29–31). The current PR
+implements typed movement in step 4; the traversal lesson follows separately. Each subsequent step gets its own review and appropriate game testing.
+
+Immediate follow-up before the traversal lesson: replace the prototype's per-run
+100-statement cap with a bounded computation-between-actions policy, retain Stop
+and runaway-loop protection, and surface runtime termination clearly. The fixed
+30-second watchdog also prevents continuous automation. Do not simply remove
+limits without testing cancellation and non-yielding loops.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
@@ -146,6 +152,7 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-004 | Tooling limitation | A file-level write permission for Proton's `dist.lock` caused sandbox mount failures, then prevented shell commands in that turn. | Avoid requesting file-level access to that lock. The user successfully ran the launch script in their normal terminal. Request only necessary directory permissions if automated testing is retried. | User launch verified; sandbox launch itself remains unverified. |
 | COMP-001 | Open | TypeScript 6.0.3 finds nine ES2020 library references under Node, zero under Jint 4.17.0; compilation reports missing global types. | Reduced to ordinary continue inside labeled while/do loops. Both 4.17.0 and isolated 4.16.4 fail; scratch scanner rewrite restores compilation, but no workaround ships. Compare another host or verified upstream fix. | Reproduced on desktop .NET; not tested on Unity/Mono. |
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
+| RUN-001 | Open | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms repeated statement-limit failures; no fix yet. |
 
 No open plugin behavior bug has been established by the limited startup test. Runtime scheduling and platform compatibility remain untested risks, not fixed bugs.
 
@@ -244,3 +251,13 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - PR #31 marker-mode check: screenshot confirms marker insertion and explanatory text; user confirms the full marked example clears the expected native error on previously unmarked saved code and runs one flip. All local diagnostic flags now disabled (TypeScriptForAllWindows already false) for the pending original-page restoration check after restart.
 
 - 2026-11-14: PR #31 restoration check passed: screenshots show the original First Program page after disabling source mode and restarting. Manual checks now cover visible lesson layout in both modes, home navigation, first-example execution, and original-page restoration. Full-page layout across languages/window sizes and the tech-tree link were not separately verified. Local diagnostics remain disabled. PR prepared for review, not merged; next planned feature is typed directions and move().
+
+- 2026-11-14: PR #31 merge confirmed at 3a28313. Branch `feat/typed-movement` adds Direction string-literal typing and move(): boolean through native scheduling. Runtime rejects invalid values before queuing; only strings cross the mailbox. [Design/checks](docs/design/typed-movement.md). Native costs, mapping, wrapping, and blocked/locked cases pending. User currently has one grass tile; visible traversal may not be testable yet.
+
+- Typed movement validation: both locked builds pass without warnings/errors; 18 compiler/lesson tests and runtime/mailbox/movement/stepping/dispatch suites pass. Deployed with Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true. No native movement result claimed yet.
+
+- 2026-11-14: PR #32 north check passed after user unlocked first farm expansion. Fresh log confirms move(north)=true at 200 operations, one flip, and worker release. Other directions and blocked/locked cases remain pending; source mode stays enabled. User’s valid while(true) harvest loop stops on the 100-statement cap (confirmed in fresh log), not successful completion. Recorded RUN-001 and prioritized cooperative loop limits/runtime failure UI before traversal teaching. Fixed 30-second watchdog also remains a continuous-play blocker.
+
+- 2026-11-14: With the game closed and user authorization, prepared isolated Save0 for development: added first-level feature names from the game-generated Unlocks declarations (51 names), set expand_3 (expected 4×4 per inspected native size mapping), and preserved items/code/settings. Original Save0 copied byte-for-byte to Save1 for early-game checks and to ignored work/save-backups/pre-dev-unlocks-20261114T234025Z with a hash/change manifest. JSON and backup equality verified; loading/unlock effects not yet verified in-game. DLC restrictions remain game-owned; this does not grant ownership or implement additional TypeScript APIs. Source mode remains enabled for PR #32 testing.
+
+- PR #32 validation complete for directional success and compile-error recovery: user confirms Save0 loads as 4×4 and east/south/west plus flip; fresh log confirms true at 200 operations for each. Earlier north check also passed. Screenshot/log confirm TS2345 on up, then corrected east plus flip and worker release. Explicit edge wrapping, blocked/locked movement, and movement-specific Stop remain unverified in-game (false/cancellation covered on desktop). Local diagnostics disabled; PR ready for review, not merged. Next prioritize RUN-001 continuous-loop budgets before traversal lessons.
