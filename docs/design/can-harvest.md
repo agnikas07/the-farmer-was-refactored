@@ -55,3 +55,7 @@ The user has one grass tile, so a controlled false result is deferred until the
 harvest increment. False transport and branching pass desktop tests only. Native
 locked-query rejection remains untested. These limits do not block review of this
 increment. All local diagnostic switches are disabled after testing.
+
+Follow-up (2026-11-14, harvest increment): fresh game log confirms canHarvest=false
+after harvest, charged 1 operation, followed by the expected conditional flip.
+This closes the deferred native false-query check above.

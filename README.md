@@ -29,10 +29,10 @@ for (let index = 0; index < flipCount; index++) {
 
 Two flips. Strong types. One very enthusiastic drone.
 
-Public APIs use TypeScript-style camelCase: `doAFlip()` and the new
-[`canHarvest(): boolean` query](docs/design/can-harvest.md). The mature-grass true case is verified in-game; the false case remains
-desktop-tested only. [`harvest(): boolean`](docs/design/harvest.md) is now implemented and awaiting
-in-game verification.
+Public APIs use TypeScript-style camelCase: `doAFlip()`,
+[`canHarvest(): boolean`](docs/design/can-harvest.md), and
+[`harvest(): boolean`](docs/design/harvest.md). Both query results and successful
+harvesting are verified in-game; a failed harvest remains desktop-tested only.
 The `// @refactored` first line currently selects TypeScript execution; without
 it, the game still uses its native language. It is a temporary diagnostic marker,
 not part of TypeScript or the intended finished experience. With source mode

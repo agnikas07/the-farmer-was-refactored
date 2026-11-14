@@ -18,9 +18,8 @@ cannot undo a harvest already applied by the game.
 Automated checks cover both boolean results controlling a flip, harvest followed
 by a query, completion gating, stale tickets, cancellation before/after claim,
 TypeScript return/argument typing, and embedded V8-to-Jint execution with a stub
-field. These do not establish native field behavior or costs. Manual testing is
-pending on the isolated Unity/Mono game under CachyOS/Proton; other platforms
-remain untested.
+field. These do not establish native field behavior or costs. Manual success and post-harvest query checks pass on the isolated Unity/Mono
+game under CachyOS/Proton; other platforms remain untested.
 
 ## First manual check
 
@@ -45,3 +44,18 @@ unobserved false cases passed. Type errors should still reject before actions.
 
 The next separate increment replaces a small introductory in-game lesson with
 TypeScript examples. This PR adds no lesson UI, movement, or wider farming APIs.
+
+## Game evidence — 2026-11-14
+
+User confirms grass collection followed by one flip. Fresh game log confirms
+canHarvest=true (1 operation), harvest=true (200 operations), and one flip
+(599 operations at this session's native operation duration), with worker release.
+A subsequent harvest/query run confirms canHarvest=false and the conditional flip,
+closing the deferred false-query check from PR #29.
+
+Two back-to-back harvests both returned true at 200 operations each, with no flip,
+matching the user's observation. This does not establish a false harvest result
+or prove when grass regrew. Native harvest=false and its failure cost remain
+untested; boolean false transport and branching pass desktop tests. Native locked
+query rejection also remains untested. Local diagnostic switches are disabled
+after verification. The next feature is the introductory TypeScript lesson.

@@ -1,6 +1,6 @@
 # Project status and handoff
 
-Last updated: 2026-11-13 (America/New_York).
+Last updated: 2026-11-14 (America/New_York).
 
 This is the canonical handoff for a new agent or session. Read it alongside `AGENTS.md` before starting work. It records verified facts, decisions, plans, and issues; the code and current GitHub state take precedence if this snapshot becomes stale.
 
@@ -232,3 +232,5 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - PR #29 merge confirmed at ba53c17. Branch `feat/harvest` adds harvest(): boolean through the native scheduler, retaining native success/failure costs and completion ordering. [Design/manual check](docs/design/harvest.md). Builds pass; manual success/false results, field/inventory effects, and costs remain pending. Next is the first rewritten in-game lesson.
 
 - harvest automated validation: both locked plugin builds pass with zero warnings/errors; all 15 compiler tests, runtime/mailbox/stepping/dispatch, and V8/compiler-worker suites pass. Embedded farm sequence uses a stub field, not native game validation. Deployed locally; Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true for the pending manual check.
+
+- 2026-11-14: PR #30 manual checks pass for collection/conditional flip and post-harvest canHarvest=false. Fresh log confirms harvest=true costs 200 operations, query costs 1, and worker release. Two successive harvests both returned true with zero flips; native harvest=false/failure cost remain untested (desktop false transport/branching pass). This closes PR #29’s deferred false-query check. README/design evidence updated; local diagnostics and all-window mode disabled. PR prepared for review, not merged. Next: first rewritten in-game lesson.
