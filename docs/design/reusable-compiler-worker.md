@@ -46,8 +46,7 @@ and Stop still work before marking the PR ready. Disable source mode after testi
 Desktop tests pass for reuse, changed action counts, source-declaration isolation,
 semantic rejection/recovery, cancellation while the owner is occupied, worker-thread
 ownership, disposal, and initialization failure. Existing runtime/compiler suites
-pass. The first in-game timing comparison passed; changed-source, error/recovery,
-and Stop checks remain pending. Other diagnostic modes retain their fresh-engine compiler behavior.
+pass. In-game timing, changed-source, error/recovery, and Stop/recovery checks passed. Other diagnostic modes retain their fresh-engine compiler behavior.
 
 
 ## First in-game measurements (2026-11-13)
@@ -67,4 +66,11 @@ now happens before Run; this comparison does not measure total game startup.
 The native action interval remained about one second. These observations are
 not statistical guarantees or first-rendered-frame measurements. Action-worker
 release does not prove compiler-thread shutdown; that lifetime remains distinct.
-PR #26 remains draft pending the remaining manual checks; source mode stays enabled.
+The subsequent pasted logs confirm three completed calls at 400 operations each,
+TS2322 rejection on line 3 with no completed actions followed by successful
+one-call recovery, and Stop followed by successful one-call recovery in the same
+session. The final Stop/recovery result is also confirmed in the fresh on-disk log;
+earlier runs were overwritten and are preserved as user-pasted evidence.
+PR #26 is ready for review. All local diagnostic flags are now disabled.
+Compiler-owner shutdown is covered by desktop tests; the game log only proves
+action-worker release, not compiler-owner disposal during game exit.
