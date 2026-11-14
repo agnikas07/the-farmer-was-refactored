@@ -25,6 +25,7 @@ try
     MailboxChecks.Run();
     ActionMailboxChecks.Run();
     MovementChecks.Run();
+    FarmBudgetChecks.Run();
     var owner = Thread.CurrentThread.ManagedThreadId;
     using (var probe = new DispatchProbe(Console.WriteLine, value =>
     {

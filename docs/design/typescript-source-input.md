@@ -79,10 +79,12 @@ without completed calls. Earlier results are screenshot-only because subsequent
 launches overwrote their logs. All local diagnostic flags are now disabled.
 These checks do not establish every cancellation race or supported game state.
 
-The editor still uses Python highlighting, tokenization, and error UI; native
-parse warnings may remain visible even when marked TypeScript runs successfully.
-Use the BepInEx log for TypeScript diagnostics. Step mode is unsupported; use Run
-and Stop only. The only farm API is doAFlip. Source is limited to 32,768 characters,
-Jint to 100 statements, 8 MB allocations and recursion 64, with a 30-second run
-watchdog. Modules, imports, additional APIs, source-map UI, world-reset races,
-and general-purpose runtime hardening remain future work.
+The editor still uses Python highlighting, but TypeScript windows suppress native
+parser errors and show the first compiler error after Run. Runtime failures remain
+log-only. Step mode is unsupported; use Run and Stop. The farm APIs are doAFlip,
+canHarvest, harvest, and move. Source is limited to 32,768 characters; Jint retains
+8 MB allocations and recursion 64. Source runs now use a 10,000-statement budget
+renewed after each completed farm call, without the fixed 30-second watchdog.
+See [continuous farming budgets](continuous-farming-budget.md) for policy and
+validation limits. Modules, imports, source-map UI, world-reset races, and
+general-purpose runtime hardening remain future work.

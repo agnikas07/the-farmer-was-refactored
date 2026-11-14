@@ -20,6 +20,9 @@ namespace TheFarmerWasRefactored.Runtime
             internal Ticket(Command action, string direction) { Action = action; Direction = direction; }
         }
 
+        private readonly Action onCompleted;
+        public ActionMailbox(Action onCompleted = null) { this.onCompleted = onCompleted; }
+
         private readonly object gate = new object();
         private readonly int owner = Thread.CurrentThread.ManagedThreadId;
         private Ticket current;
@@ -55,7 +58,11 @@ namespace TheFarmerWasRefactored.Runtime
                 if (current != null) throw new InvalidOperationException("An action is already outstanding.");
                 current = ticket = new Ticket(command, direction);
             }
-            return ticket.Result.Task.GetAwaiter().GetResult();
+            var result = ticket.Result.Task.GetAwaiter().GetResult();
+            // Runs on the requesting worker, only after a successful native completion.
+            // A false farm result is still a completed call. Failures/Stop do not renew.
+            onCompleted?.Invoke();
+            return result;
         }
 
         public bool TryClaim(out Ticket ticket)
