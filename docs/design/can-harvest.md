@@ -25,7 +25,7 @@ and strict TypeScript return/argument checks with no snake_case alias. The game
 adapter still requires manual verification; desktop stubs cannot prove native
 unlock handling, costs, or field state.
 
-## Manual checks (pending)
+## Manual checks
 
 With source mode enabled and canHarvest unlocked, stand over a mature crop:
 
@@ -41,3 +41,17 @@ On an empty or unready tile, the same code should report false and perform no fl
 Use a stable empty tile if growth could change the result during startup.
 Also verify query failure/type errors do not cause later flips, and ordinary
 one-flip scripts still work. Native Windows/macOS are not yet tested.
+
+## Observed game results
+
+User confirmed the mature-grass conditional flips once without harvesting.
+Fresh log confirms canHarvest=true at one operation, then one completed flip
+(reported cost 599 in this session), and worker release. Flip cost is computed
+by the native game from operation duration, not a fixed 400-operation contract.
+The log also shows query-only completions and rejection of the not-yet-bound
+harvest function before any actions.
+
+The user has one grass tile, so a controlled false result is deferred until the
+harvest increment. False transport and branching pass desktop tests only. Native
+locked-query rejection remains untested. These limits do not block review of this
+increment. All local diagnostic switches are disabled after testing.
