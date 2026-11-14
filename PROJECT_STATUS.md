@@ -110,6 +110,12 @@ production timing parity or complete language correctness.
 The farm queries/actions and first lesson are merged (#29–31). The current PR
 implements typed movement in step 4; the traversal lesson follows separately. Each subsequent step gets its own review and appropriate game testing.
 
+Immediate follow-up before the traversal lesson: replace the prototype's per-run
+100-statement cap with a bounded computation-between-actions policy, retain Stop
+and runaway-loop protection, and surface runtime termination clearly. The fixed
+30-second watchdog also prevents continuous automation. Do not simply remove
+limits without testing cancellation and non-yielding loops.
+
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
 Resolve COMP-001 or choose a verified alternative runtime. Decide computation
@@ -146,6 +152,7 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-004 | Tooling limitation | A file-level write permission for Proton's `dist.lock` caused sandbox mount failures, then prevented shell commands in that turn. | Avoid requesting file-level access to that lock. The user successfully ran the launch script in their normal terminal. Request only necessary directory permissions if automated testing is retried. | User launch verified; sandbox launch itself remains unverified. |
 | COMP-001 | Open | TypeScript 6.0.3 finds nine ES2020 library references under Node, zero under Jint 4.17.0; compilation reports missing global types. | Reduced to ordinary continue inside labeled while/do loops. Both 4.17.0 and isolated 4.16.4 fail; scratch scanner rewrite restores compilation, but no workaround ships. Compare another host or verified upstream fix. | Reproduced on desktop .NET; not tested on Unity/Mono. |
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
+| RUN-001 | Open | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms repeated statement-limit failures; no fix yet. |
 
 No open plugin behavior bug has been established by the limited startup test. Runtime scheduling and platform compatibility remain untested risks, not fixed bugs.
 
@@ -248,3 +255,5 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - 2026-11-14: PR #31 merge confirmed at 3a28313. Branch `feat/typed-movement` adds Direction string-literal typing and move(): boolean through native scheduling. Runtime rejects invalid values before queuing; only strings cross the mailbox. [Design/checks](docs/design/typed-movement.md). Native costs, mapping, wrapping, and blocked/locked cases pending. User currently has one grass tile; visible traversal may not be testable yet.
 
 - Typed movement validation: both locked builds pass without warnings/errors; 18 compiler/lesson tests and runtime/mailbox/movement/stepping/dispatch suites pass. Deployed with Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true. No native movement result claimed yet.
+
+- 2026-11-14: PR #32 north check passed after user unlocked first farm expansion. Fresh log confirms move(north)=true at 200 operations, one flip, and worker release. Other directions and blocked/locked cases remain pending; source mode stays enabled. User’s valid while(true) harvest loop stops on the 100-statement cap (confirmed in fresh log), not successful completion. Recorded RUN-001 and prioritized cooperative loop limits/runtime failure UI before traversal teaching. Fixed 30-second watchdog also remains a continuous-play blocker.

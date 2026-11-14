@@ -42,3 +42,9 @@ Follow up with the other directions on a farm where position changes can be
 observed, a blocked move when available, invalid direction compile rejection,
 and Stop/recovery. Record unavailable scenarios explicitly. This increment adds
 movement; the traversal lesson follows separately after the API is verified.
+
+Manual progress (2026-11-14): user unlocked the first farm expansion and confirms
+north movement plus one flip. Fresh log confirms move(north)=true at 200 operations
+and worker release. Other directions and blocked/locked cases remain pending.
+A separate continuous-harvest attempt hit the existing 100-statement runtime cap;
+tracked as RUN-001, not a movement failure.
