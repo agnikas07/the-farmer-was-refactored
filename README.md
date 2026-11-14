@@ -36,8 +36,9 @@ it, the game still uses its native language. It is a temporary diagnostic marker
 not part of TypeScript or the intended finished experience. With source mode
 enabled, a single `doAFlip();` really does mean one flip.
 
-The editor still displays Python highlighting and may show misleading Python
-errors. TypeScript diagnostics currently appear in the BepInEx log. See the
+The editor still uses Python highlighting. Marked TypeScript windows suppress
+Python errors and show the first TypeScript compiler error after Run, with full
+diagnostics in the BepInEx log. See the
 [source-input test instructions](docs/design/typescript-source-input.md) for
 setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 

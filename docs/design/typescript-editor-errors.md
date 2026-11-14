@@ -18,7 +18,7 @@ Only compiler errors are covered; runtime exceptions and infrastructure failures
 remain log-only. This is validation on Run, not background validation while typing.
 The TypeScript marker and existing diagnostic execution limits remain unchanged.
 
-## Manual check (pending)
+## Manual check
 
 Launch with source mode enabled, then Run:
 
@@ -36,11 +36,22 @@ should clear the stale popup, and Run should complete one flip.
 Then verify changing the window to invalid native Python (`if`, without the
 marker) still shows the native error after committing the edit. Restore marked
 valid code and Run to confirm recovery. A rapid edit/new Run should not redisplay
-an error for the older source. Keep the PR draft until visual checks pass.
+an error for the older source.
 
 ## Automated evidence
 
 Locked Unity builds, the 13 Node compiler tests, runtime/mailbox tests, and V8
 compiler-worker suites pass. Added assertions cover original diagnostic spans,
 CRLF and LF, Unicode before an error, inclusive end conversion, and span clamping.
-The native popup itself and stale-result handling still require manual testing.
+Manual verification on 2026-11-13 under Unity/Mono on CachyOS/Proton:
+
+- User screenshot confirms TS2322 highlights `count` and explains the mismatch.
+- User confirms editing clears the popup and corrected code performs one flip.
+- Screenshot confirms removing the marker restores the native Python error for `if`.
+- User confirms restoring marked valid code clears the native error and performs one flip.
+- Fresh BepInEx log confirms rejection without completed actions, followed by two
+  successful one-call runs at 400 operations each and worker release.
+
+Rapid edit/new-Run delivery races and window-close races have not been manually
+verified; source/version guards were reviewed, but these remain coverage limits.
+Local source-mode diagnostic switches were disabled after verification.
