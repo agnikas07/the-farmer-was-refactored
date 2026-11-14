@@ -14,7 +14,7 @@ namespace TheFarmerWasRefactored
         private readonly string marker;
         private readonly string javascript;
         private readonly string label;
-        private readonly Func<string, string> compile;
+        private readonly Func<string, Action<string>, string> compile;
         private static NativeActionProbe active;
         private readonly Harmony harmony = new Harmony(Plugin.Id + ".native-action-probe");
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
@@ -22,7 +22,7 @@ namespace TheFarmerWasRefactored
         private readonly int unityThread = Thread.CurrentThread.ManagedThreadId;
         private int claimed, disposed;
 
-        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, string> compile = null)
+        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, Action<string>, string> compile = null)
         {
             this.report = report;
             this.compile = compile;
@@ -75,9 +75,11 @@ namespace TheFarmerWasRefactored
                 probe.messages.Enqueue($"{probe.label}: step mode is not supported; use ordinary Run.");
                 return false;
             }
+            var timing = new SourceRunTiming(probe.messages.Enqueue);
+            timing.Mark("source_captured");
             probe.messages.Enqueue($"{probe.label}: captured {source.Length} characters for this run");
             MainSim.Inst.StopMainExecution();
-            MainSim.Inst.StartMainExecution(__instance, new FlipNode(__instance, probe, source), false);
+            MainSim.Inst.StartMainExecution(__instance, new FlipNode(__instance, probe, source, timing), false);
             return false;
         }
 
@@ -111,12 +113,14 @@ namespace TheFarmerWasRefactored
         {
             private readonly NativeActionProbe probe;
             private readonly string source;
-            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null)
+            private readonly SourceRunTiming timing;
+            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null, SourceRunTiming timing = null)
                 : base(window, source == null ? probe.marker.IndexOf("doAFlip", StringComparison.Ordinal) : 0,
                     (source ?? probe.marker).Length - 1)
             {
                 this.probe = probe;
                 this.source = source;
+                this.timing = timing;
             }
 
             public override IEnumerable<double> Execute(ProgramState state, Execution execution, int depth)
@@ -129,11 +133,12 @@ namespace TheFarmerWasRefactored
                     probe.messages.Enqueue($"{probe.label} FAILED: requires one drone in a normal farm on the simulation thread.");
                     yield break;
                 }
+                timing?.Mark("simulation_entered");
                 state.CurrentExecutingNode = this;
                 var run = new JavaScriptActionRun(execution,
                     message => probe.messages.Enqueue(message.Replace("JavaScript action probe", probe.label)),
-                    probe.javascript, source == null ? (Func<string>)null : () => probe.compile(source),
-                    source == null ? (int?)2 : null);
+                    probe.javascript, source == null ? (Func<string>)null : () => probe.compile(source, timing.Mark),
+                    source == null ? (int?)2 : null, timing);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
                     run.Dispose();
@@ -145,7 +150,7 @@ namespace TheFarmerWasRefactored
             public override Node DeepCopy(Dictionary<object, object> copies)
             {
                 if (copies.TryGetValue(this, out var existing)) return (Node)existing;
-                var copy = new FlipNode(boxedParams.codeWindow, probe, source);
+                var copy = new FlipNode(boxedParams.codeWindow, probe, source, timing);
                 copies[this] = copy;
                 return copy;
             }

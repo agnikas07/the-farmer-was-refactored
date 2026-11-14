@@ -16,6 +16,7 @@ namespace TheFarmerWasRefactored
         private readonly Action<string> report;
         private readonly Task worker;
         private readonly int? expectedCalls;
+        private readonly SourceRunTiming timing;
         private int disposed, yields;
         internal bool YieldRequested;
         internal bool Waiting;
@@ -23,14 +24,16 @@ namespace TheFarmerWasRefactored
             && Volatile.Read(ref disposed) == 0;
 
         internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();",
-            Func<string> prepare = null, int? expectedCalls = 2)
+            Func<string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null)
         {
             Execution = execution;
             this.expectedCalls = expectedCalls;
+            this.timing = timing;
             this.report = report;
             stop.CancelAfter(TimeSpan.FromSeconds(30)); // Diagnostic watchdog, not action timing.
             worker = Task.Run(() =>
             {
+                timing?.Mark("worker_started");
                 stop.Token.ThrowIfCancellationRequested();
                 if (prepare != null)
                 {
@@ -42,7 +45,13 @@ namespace TheFarmerWasRefactored
                 using (var engine = new Engine(options => options.CancellationToken(stop.Token)
                     .MaxStatements(100).LimitMemory(8_000_000).LimitRecursion(64)))
                 {
-                    engine.SetValue("doAFlip", new Action(mailbox.DoAFlip));
+                    var requests = 0;
+                    engine.SetValue("doAFlip", new Action(() =>
+                    {
+                        if (++requests == 1) timing?.Mark("first_request");
+                        mailbox.DoAFlip();
+                    }));
+                    timing?.Mark("player_ready");
                     engine.Execute(javascript);
                 }
             });
@@ -78,10 +87,12 @@ namespace TheFarmerWasRefactored
                     Waiting = false;
                     continue;
                 }
+                if (completed == 0) timing?.Mark("first_claim");
                 var before = state.OpCount;
                 state.currentDependencies.Add(("do_a_flip", node.boxedParams.wordStart, node.boxedParams.wordEnd));
                 var ops = BuiltinFunctions.Functions["do_a_flip"].binding(
                     new List<IPyObject>(), Execution.sim, Execution, state.DroneId);
+                if (completed == 0) timing?.Mark("first_binding_returned");
                 if (node.CheckIncrementOpCount(state, Execution, ops)) yield return 0;
                 var charged = state.OpCount - before;
                 if (state.currentSideEffect != SideEffect.None || !(state.ReturnValue is PyNone) || charged <= 0)
@@ -91,6 +102,7 @@ namespace TheFarmerWasRefactored
                 }
                 if (!mailbox.Complete(ticket)) yield break;
                 completed++;
+                if (completed == 1) timing?.Mark("first_action_completed");
                 report($"JavaScript action probe: doAFlip={completed} chargedOps={charged}");
             }
         }
@@ -104,6 +116,7 @@ namespace TheFarmerWasRefactored
             _ = worker.ContinueWith(task =>
             {
                 _ = task.Exception;
+                timing?.Mark("worker_released");
                 report("JavaScript action probe: worker released");
                 stop.Dispose();
             }, TaskScheduler.Default);
