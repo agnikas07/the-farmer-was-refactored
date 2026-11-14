@@ -43,7 +43,7 @@ namespace TheFarmerWasRefactored.V8Probe
                 {
                     var main = (global::TheFarmerWasRefactored.Plugin)Chainloader.PluginInfos[
                         global::TheFarmerWasRefactored.Plugin.Id].Instance;
-                    actionProbe = main.ArmTypeScriptSourceProbe(source => ActionProgramCompiler.Compile(bundlePath, source));
+                    actionProbe = main.ArmTypeScriptSourceProbe((source, mark) => ActionProgramCompiler.Compile(bundlePath, source, mark));
                 }
                 catch (Exception error) { Logger.LogError($"TypeScript source probe FAILED: {error}"); }
                 return;
