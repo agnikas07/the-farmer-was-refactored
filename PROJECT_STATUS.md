@@ -1,6 +1,6 @@
 # Project status and handoff
 
-Last updated: 2026-11-13 (America/New_York).
+Last updated: 2026-11-14 (America/New_York).
 
 This is the canonical handoff for a new agent or session. Read it alongside `AGENTS.md` before starting work. It records verified facts, decisions, plans, and issues; the code and current GitHub state take precedence if this snapshot becomes stale.
 
@@ -107,8 +107,8 @@ production timing parity or complete language correctness.
 4. Add typed directions and `move()`, then extend the lesson to farm traversal.
 5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
 
-The current PR implements only step 1. No harvest/move binding or lesson rewrite
-yet. Each subsequent step gets its own review and appropriate game testing.
+The canHarvest increment is merged (#29); the current PR implements step 2.
+No move binding or lesson rewrite yet. Each subsequent step gets its own review and appropriate game testing.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
@@ -228,3 +228,9 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - canHarvest validation: 14 compiler tests, V8/compiler-worker suites, and runtime/mailbox/stepping/dispatch suites pass, including true/false conditional execution and query cancellation. Both locked plugin builds have zero warnings/errors. Local game deployment has Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true for manual testing. Query field results, native cost, and unlock rejection remain unverified in-game.
 
 - PR #29 manual evidence: user confirms mature-grass query followed by one flip without harvesting; fresh log confirms true at 1 operation, one flip (599 operations in this session), and worker release. Native flip cost varies with operation duration. User has only one grass tile; in-game false case is deferred to harvest, with false transport/branching covered on desktop. Locked-query rejection remains untested. Local diagnostics and all-window mode disabled; PR ready for review, not merged. Next implement harvest and revisit the false case.
+
+- PR #29 merge confirmed at ba53c17. Branch `feat/harvest` adds harvest(): boolean through the native scheduler, retaining native success/failure costs and completion ordering. [Design/manual check](docs/design/harvest.md). Builds pass; manual success/false results, field/inventory effects, and costs remain pending. Next is the first rewritten in-game lesson.
+
+- harvest automated validation: both locked plugin builds pass with zero warnings/errors; all 15 compiler tests, runtime/mailbox/stepping/dispatch, and V8/compiler-worker suites pass. Embedded farm sequence uses a stub field, not native game validation. Deployed locally; Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true for the pending manual check.
+
+- 2026-11-14: PR #30 manual checks pass for collection/conditional flip and post-harvest canHarvest=false. Fresh log confirms harvest=true costs 200 operations, query costs 1, and worker release. Two successive harvests both returned true with zero flips; native harvest=false/failure cost remain untested (desktop false transport/branching pass). This closes PR #29’s deferred false-query check. README/design evidence updated; local diagnostics and all-window mode disabled. PR prepared for review, not merged. Next: first rewritten in-game lesson.

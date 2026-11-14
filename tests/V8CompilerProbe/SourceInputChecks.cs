@@ -22,6 +22,29 @@ internal static class SourceInputChecks
             player.Execute(emitted);
             if (calls != item.Calls) throw new InvalidOperationException("Source call count mismatch.");
         }
+        var farmProgram = ActionProgramCompiler.Compile(bundlePath,
+            "const collected: boolean = harvest(); if (collected && !canHarvest()) doAFlip();");
+        foreach (var available in new[] { false, true })
+        {
+            var occupied = available;
+            var harvests = 0;
+            var queries = 0;
+            var flips = 0;
+            using var player = new Engine(options => options.MaxStatements(100));
+            player.SetValue("harvest", new Func<bool>(() =>
+            {
+                harvests++;
+                var result = occupied;
+                occupied = false;
+                return result;
+            }));
+            player.SetValue("canHarvest", new Func<bool>(() => { queries++; return occupied; }));
+            player.SetValue("doAFlip", new Action(() => flips++));
+            player.Execute(farmProgram);
+            if (harvests != 1 || queries != (available ? 1 : 0) || flips != (available ? 1 : 0))
+                throw new InvalidOperationException("Compiled farm-result sequencing mismatch.");
+        }
+        Console.WriteLine("Source input: embedded compiler farm booleans and sequencing PASS (stub field)");
         try
         {
             ActionProgramCompiler.Compile(bundlePath, "// @refactored\ndoAFlip();\nconst count: number = 'two';");
