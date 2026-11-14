@@ -48,3 +48,12 @@ north movement plus one flip. Fresh log confirms move(north)=true at 200 operati
 and worker release. Other directions and blocked/locked cases remain pending.
 A separate continuous-harvest attempt hit the existing 100-statement runtime cap;
 tracked as RUN-001, not a movement failure.
+
+Manual follow-up: user confirms the development save loads as 4×4 and east,
+south, and west movement each perform the expected move plus a flip. Fresh log
+confirms those directions return true at 200 operations. Screenshot confirms
+TS2345 highlights "up"; the log confirms rejection before actions and subsequent
+east movement plus flip with worker release. Together with the earlier north
+check, all direction success paths are verified. Blocked/locked moves, explicit
+edge wrapping, and movement-specific Stop remain unverified in-game; false
+results and cancellation are desktop-tested. Local diagnostics are disabled.
