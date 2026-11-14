@@ -83,7 +83,7 @@ namespace TheFarmerWasRefactored
             return nativeActionProbe;
         }
 
-        public IDisposable ArmTypeScriptSourceProbe(Func<string, Action<string>, string> compile)
+        public IDisposable ArmTypeScriptSourceProbe(Func<string, Action<string>, CancellationToken, string> compile)
         {
             if (compile == null) throw new ArgumentNullException(nameof(compile));
             if (nativeActionProbe != null) throw new InvalidOperationException("An action probe is already installed.");

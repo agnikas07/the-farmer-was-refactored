@@ -17,6 +17,7 @@ namespace TheFarmerWasRefactored.V8Probe
         private int stopped;
         private readonly ConcurrentQueue<string> compiledPrograms = new ConcurrentQueue<string>();
         private IDisposable actionProbe;
+        private CompilerWorker compilerWorker;
 
         private void Awake()
         {
@@ -43,9 +44,10 @@ namespace TheFarmerWasRefactored.V8Probe
                 {
                     var main = (global::TheFarmerWasRefactored.Plugin)Chainloader.PluginInfos[
                         global::TheFarmerWasRefactored.Plugin.Id].Instance;
-                    actionProbe = main.ArmTypeScriptSourceProbe((source, mark) => ActionProgramCompiler.Compile(bundlePath, source, mark));
+                    compilerWorker = new CompilerWorker(bundlePath, messages.Enqueue);
+                    actionProbe = main.ArmTypeScriptSourceProbe(compilerWorker.Compile);
                 }
-                catch (Exception error) { Logger.LogError($"TypeScript source probe FAILED: {error}"); }
+                catch (Exception error) { compilerWorker?.Dispose(); Logger.LogError($"TypeScript source probe FAILED: {error}"); }
                 return;
             }
             compile = compile || useJint;
@@ -117,6 +119,7 @@ namespace TheFarmerWasRefactored.V8Probe
             // Fixed scripts terminate themselves. Never join or dispose an engine on Unity.
             Interlocked.Exchange(ref stopped, 1);
             actionProbe?.Dispose();
+            compilerWorker?.Dispose();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace TheFarmerWasRefactored
         private readonly string marker;
         private readonly string javascript;
         private readonly string label;
-        private readonly Func<string, Action<string>, string> compile;
+        private readonly Func<string, Action<string>, CancellationToken, string> compile;
         private static NativeActionProbe active;
         private readonly Harmony harmony = new Harmony(Plugin.Id + ".native-action-probe");
         private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
@@ -22,7 +22,7 @@ namespace TheFarmerWasRefactored
         private readonly int unityThread = Thread.CurrentThread.ManagedThreadId;
         private int claimed, disposed;
 
-        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, Action<string>, string> compile = null)
+        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, Action<string>, CancellationToken, string> compile = null)
         {
             this.report = report;
             this.compile = compile;
@@ -137,7 +137,7 @@ namespace TheFarmerWasRefactored
                 state.CurrentExecutingNode = this;
                 var run = new JavaScriptActionRun(execution,
                     message => probe.messages.Enqueue(message.Replace("JavaScript action probe", probe.label)),
-                    probe.javascript, source == null ? (Func<string>)null : () => probe.compile(source, timing.Mark),
+                    probe.javascript, source == null ? (Func<CancellationToken, string>)null : token => probe.compile(source, timing.Mark, token),
                     source == null ? (int?)2 : null, timing);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
