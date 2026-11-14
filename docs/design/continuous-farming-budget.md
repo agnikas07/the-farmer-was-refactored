@@ -23,8 +23,12 @@ in the same execution, computation-only exhaustion and fresh execution recovery,
 failed/canceled requests not renewing the budget, and Stop during a farm loop.
 Existing mailbox, movement, stepping, cancellation, and dispatch checks pass.
 
-Unity/Mono verification is pending. With source mode and all-window TypeScript
-enabled, restart the development game and run:
+Unity/Mono checks passed on CachyOS/Proton: user confirmed the requested
+40-second harvest/Stop check and same-session one-flip recovery. The game log
+confirmed repeated harvests and worker release; user-pasted output confirmed
+computation-limit termination and worker release. Duration is user-reported.
+
+To repeat with source mode and all-window TypeScript enabled, restart and run:
 
 ```typescript
 while (true) {
