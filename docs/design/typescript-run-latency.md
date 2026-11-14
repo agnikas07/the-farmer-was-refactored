@@ -50,4 +50,24 @@ one call at 400 operations and release the worker. The compiler still starts fre
 on each run; no caching or optimization is included here. Measurements will guide
 whether compiler reuse, bundle caching, or another phase deserves the next change.
 
-Build/runtime/compiler regression checks pass; in-game baseline capture is pending.
+Build/runtime/compiler regression checks pass. In-game baseline captured on
+2026-11-13 under Unity/Mono on CachyOS/Proton, confirmed by user-pasted output
+and the fresh BepInEx log. All three runs completed one call at 400 operations
+and released their worker.
+
+| Phase (milliseconds, differences between milestones) | Run 1 | Run 2 | Run 3 |
+| --- | ---: | ---: | ---: |
+| Capture to worker start | 27.42 | 0.68 | 0.55 |
+| Bundle read/parse | 248.74 | 180.71 | 179.91 |
+| Compiler setup | 353.57 | 224.29 | 210.01 |
+| Type checking/emission/serialization | 281.06 | 262.28 | 270.24 |
+| Result parsing/compiler disposal | 10.26 | 6.92 | 7.21 |
+| Capture to native binding return | 1010.28 | 676.99 | 676.91 |
+
+The approximately 990 ms from binding return to action completion is the native
+action interval, distinct from startup latency. These are three observations,
+not a statistical performance guarantee or first-rendered-frame measurement.
+Repeated-run startup is dominated by bundle/compiler work. Next investigate
+bundle/compiler reuse with explicit worker ownership; unchanged-source output
+caching is another candidate, but must not reuse stale compiler/API inputs.
+No optimization has shipped in this PR. Local diagnostics are now disabled.
