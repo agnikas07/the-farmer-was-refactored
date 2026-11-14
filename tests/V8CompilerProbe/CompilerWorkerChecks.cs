@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jint;
 using TheFarmerWasRefactored.V8Probe;
+using TheFarmerWasRefactored.Runtime;
 
 internal static class CompilerWorkerChecks
 {
@@ -26,6 +27,21 @@ internal static class CompilerWorkerChecks
         Reject(() => worker.Compile("const count: number = 'two';", mark, default), "2322");
         Reject(() => worker.Compile("count;", mark, default), "2304"); // Previous declarations must not leak.
         worker.Compile("doAFlip();", mark, default);
+        foreach (var newline in new[] { "\n", "\r\n" })
+        {
+            var source = "// @refactored" + newline + "// 🌱" + newline + "const count: number = 'two';";
+            try { worker.Compile(source, mark, default); throw new Exception("Expected structured diagnostic."); }
+            catch (CompilerDiagnosticException error)
+            {
+                var span = error.Span(source);
+                Check(error.DisplayMessage.StartsWith("TypeScript TS2322:"), "Missing readable diagnostic.");
+                Check(span.Start == source.IndexOf("count", StringComparison.Ordinal)
+                    && source.Substring(span.Start, span.End - span.Start + 1) == "count",
+                    "Diagnostic span lost UTF-16/CRLF position or inclusive end.");
+            }
+        }
+        var edge = new CompilerDiagnosticException("", "", int.MaxValue, int.MaxValue).Span("abc");
+        Check(edge == (2, 2), "Oversized diagnostic span was not clamped.");
         using (var cancel = new CancellationTokenSource())
         using (var entered = new ManualResetEventSlim())
         using (var release = new ManualResetEventSlim())
