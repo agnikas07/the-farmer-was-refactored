@@ -9,3 +9,9 @@ declare function canHarvest(): boolean;
  * Execution resumes after the native action cost completes.
  */
 declare function harvest(): boolean;
+
+/** A cardinal movement direction. */
+type Direction = "north" | "east" | "south" | "west";
+
+/** Move one tile using native wrapping and movement rules. False means blocked. */
+declare function move(direction: Direction): boolean;

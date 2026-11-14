@@ -33,6 +33,8 @@ Public APIs use TypeScript-style camelCase: `doAFlip()`,
 [`canHarvest(): boolean`](docs/design/can-harvest.md), and
 [`harvest(): boolean`](docs/design/harvest.md). Both query results and successful
 harvesting are verified in-game; a failed harvest remains desktop-tested only.
+[Typed movement](docs/design/typed-movement.md), such as `move("north")`, is
+implemented and awaiting native game verification.
 The `// @refactored` first line currently selects TypeScript execution; without
 it, the game still uses its native language. It is a temporary diagnostic marker,
 not part of TypeScript or the intended finished experience. With source mode

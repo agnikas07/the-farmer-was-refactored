@@ -60,9 +60,9 @@ and pressing Run tries again. Use the normal Stop control to end a running progr
 
 ## Where we are growing next
 
-This first lesson is written for The Farmer was Refactored. The three commands
-above are the current farm API. Movement and more farming commands are coming
-later. Other documentation pages still teach the original language, and editor
+This first lesson is written for The Farmer was Refactored. The commands
+above are enough for your first harvest. Movement is being tested separately;
+more farming commands and lessons are coming later. Other documentation pages still teach the original language, and editor
 colors and suggestions are not yet fully adapted to TypeScript.
 
 [Back to documentation home](docs/home.md)
