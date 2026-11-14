@@ -11,7 +11,8 @@ namespace TheFarmerWasRefactored
     internal sealed class JavaScriptActionRun : IDisposable
     {
         internal readonly Execution Execution;
-        private readonly ActionMailbox mailbox = new ActionMailbox();
+        private readonly ActionMailbox mailbox;
+        private readonly FarmExecutionBudget computationBudget = new FarmExecutionBudget();
         private readonly CancellationTokenSource stop = new CancellationTokenSource();
         private readonly Action<string> report;
         private readonly Task worker;
@@ -27,10 +28,12 @@ namespace TheFarmerWasRefactored
             Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null)
         {
             Execution = execution;
+            mailbox = new ActionMailbox(prepare == null ? (Action)null : computationBudget.Reset);
             this.expectedCalls = expectedCalls;
             this.timing = timing;
             this.report = report;
-            stop.CancelAfter(TimeSpan.FromSeconds(30)); // Diagnostic watchdog, not action timing.
+            // Fixed feasibility probes stay bounded; source programs run until Stop.
+            if (prepare == null) stop.CancelAfter(TimeSpan.FromSeconds(30));
             worker = Task.Run(() =>
             {
                 timing?.Mark("worker_started");
@@ -42,8 +45,12 @@ namespace TheFarmerWasRefactored
                 }
                 stop.Token.ThrowIfCancellationRequested();
                 using (stop.Token.Register(mailbox.Dispose))
-                using (var engine = new Engine(options => options.CancellationToken(stop.Token)
-                    .MaxStatements(100).LimitMemory(8_000_000).LimitRecursion(64)))
+                using (var engine = new Engine(options =>
+                {
+                    options.CancellationToken(stop.Token).LimitMemory(8_000_000).LimitRecursion(64);
+                    if (prepare == null) options.MaxStatements(100);
+                    else options.Constraint(computationBudget);
+                }))
                 {
                     var requests = 0;
                     engine.SetValue("doAFlip", new Action(() =>
