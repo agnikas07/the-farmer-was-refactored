@@ -37,6 +37,9 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../docs/in-game/first-program.md" LogicalName="TheFarmerWasRefactored.FirstProgram.md" />
+  </ItemGroup>
   <Target Name="CheckGameReferences" BeforeTargets="ResolveReferences">
     <Error Condition="!Exists('$(BepInExDirectory)/core/BepInEx.dll')" Text="BepInEx is missing. Prepare the local development game or set BepInExDirectory." />
     <Error Condition="!Exists('$(GameDirectory)/TheFarmerWasReplaced_Data/Managed/UnityEngine.CoreModule.dll')" Text="Game references are missing. Set GameDirectory to your local game copy." />

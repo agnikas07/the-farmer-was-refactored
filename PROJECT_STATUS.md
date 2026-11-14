@@ -107,8 +107,8 @@ production timing parity or complete language correctness.
 4. Add typed directions and `move()`, then extend the lesson to farm traversal.
 5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
 
-The canHarvest increment is merged (#29); the current PR implements step 2.
-No move binding or lesson rewrite yet. Each subsequent step gets its own review and appropriate game testing.
+The canHarvest and harvest increments are merged (#29–30); the current PR
+implements step 3, the first lesson. No move binding yet. Each subsequent step gets its own review and appropriate game testing.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
@@ -234,3 +234,13 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - harvest automated validation: both locked plugin builds pass with zero warnings/errors; all 15 compiler tests, runtime/mailbox/stepping/dispatch, and V8/compiler-worker suites pass. Embedded farm sequence uses a stub field, not native game validation. Deployed locally; Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true for the pending manual check.
 
 - 2026-11-14: PR #30 manual checks pass for collection/conditional flip and post-harvest canHarvest=false. Fresh log confirms harvest=true costs 200 operations, query costs 1, and worker release. Two successive harvests both returned true with zero flips; native harvest=false/failure cost remain untested (desktop false transport/branching pass). This closes PR #29’s deferred false-query check. README/design evidence updated; local diagnostics and all-window mode disabled. PR prepared for review, not merged. Next: first rewritten in-game lesson.
+
+- 2026-11-14: PR #30 merge confirmed at 37bf9fb. Branch `feat/first-typescript-lesson` replaces only the First Program docs page while source mode is active, using an embedded original English lesson with mode-aware examples. [Design/validation](docs/design/first-typescript-lesson.md). Native rendering, links, and mode restoration pending. No original game files are modified.
+
+- First lesson validation: both locked plugin builds pass with zero warnings/errors; all 17 compiler tests pass, including every lesson code block in marker/all-window modes and true/false branching. Deployed with Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true. English lesson rendering, navigation, and disabled-mode restoration remain pending; no native visual verification claimed.
+
+- PR #31 manual progress: screenshot confirms title, introductory text, flip/harvest examples, and marker-free instructions render. User confirms home → First Program navigation and one flip from the first lesson example. TypeScriptForAllWindows now false locally for the pending marker-mode restart check; source mode remains enabled. Disabled-mode restoration remains pending.
+
+- PR #31 marker-mode check: screenshot confirms marker insertion and explanatory text; user confirms the full marked example clears the expected native error on previously unmarked saved code and runs one flip. All local diagnostic flags now disabled (TypeScriptForAllWindows already false) for the pending original-page restoration check after restart.
+
+- 2026-11-14: PR #31 restoration check passed: screenshots show the original First Program page after disabling source mode and restarting. Manual checks now cover visible lesson layout in both modes, home navigation, first-example execution, and original-page restoration. Full-page layout across languages/window sizes and the tech-tree link were not separately verified. Local diagnostics remain disabled. PR prepared for review, not merged; next planned feature is typed directions and move().

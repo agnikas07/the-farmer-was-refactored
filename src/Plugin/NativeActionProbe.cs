@@ -45,6 +45,7 @@ namespace TheFarmerWasRefactored
                 if (compile != null)
                 {
                     SourceEditorGuard.Install(harmony, allWindows);
+                    FirstTypeScriptLesson.Install(harmony, allWindows);
                     harmony.Patch(AccessTools.Method(typeof(CodeWindow), "StartExecution", new[] { typeof(bool) }),
                         prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeSourceRun)));
                 }
@@ -182,7 +183,11 @@ namespace TheFarmerWasRefactored
             Interlocked.CompareExchange(ref active, null, this);
             Interlocked.Exchange(ref ActionSchedulerGate.Run, null)?.Dispose();
             harmony.UnpatchSelf();
-            if (compile != null) SourceEditorGuard.Reset();
+            if (compile != null)
+            {
+                SourceEditorGuard.Reset();
+                FirstTypeScriptLesson.Reset();
+            }
         }
     }
 }

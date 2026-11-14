@@ -46,6 +46,10 @@ diagnostics in the BepInEx log. See the
 [source-input test instructions](docs/design/typescript-source-input.md) for
 setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 
+The first [TypeScript lesson](docs/in-game/first-program.md) replaces the in-game
+**First Program** page while source mode is enabled. Its introductory layout, navigation, and first example are verified in-game;
+other documentation remains untranslated.
+
 ## What's sprouted?
 
 | Piece | Where it stands |
