@@ -17,7 +17,7 @@ This is still the bounded source-input diagnostic: only `doAFlip()` is bound,
 Step is unsupported, and highlighting remains native. Native tutorial snippets
 are not yet translated. There is no playable release or platform expansion.
 
-## Manual validation (pending)
+## Manual validation (passed)
 
 1. Enable all three settings and restart. Run `doAFlip();` without a marker:
    expect one flip and no Python error.
@@ -29,3 +29,10 @@ are not yet translated. There is no playable release or platform expansion.
 
 All-window mode is installed only through the existing checksum-gated source
 probe. Reset clears the selection alongside editor error state.
+
+User confirmed all four checks under Unity/Mono on CachyOS/Proton, including
+correction/recovery and restart restoring native Python errors plus marked
+TypeScript execution. The fresh game log confirms marker-based startup and one
+completed call at 400 operations, followed by worker release. Earlier all-window
+checks are user-reported; restarting overwrote their log. Local diagnostic flags
+and TypeScriptForAllWindows are now false. Native Windows/macOS remain untested.
