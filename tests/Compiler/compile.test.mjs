@@ -68,3 +68,22 @@ test("canHarvest returns a strict boolean and selects the correct branch", () =>
     assert.equal(compile(source).ok, false, source);
   }
 });
+
+test("harvest returns a boolean and preserves query/action order", () => {
+  const result = compile("if (canHarvest()) { const collected: boolean = harvest(); if (collected) doAFlip(); }");
+  assert.equal(result.ok, true, JSON.stringify(result.diagnostics));
+  for (const ready of [false, true]) {
+    for (const collected of [false, true]) {
+      const calls = [];
+      runInNewContext(result.javascript, {
+        canHarvest: () => { calls.push("query"); return ready; },
+        harvest: () => { calls.push("harvest"); return collected; },
+        doAFlip: () => calls.push("flip"),
+      });
+      assert.deepEqual(calls, ready ? (collected ? ["query", "harvest", "flip"] : ["query", "harvest"]) : ["query"]);
+    }
+  }
+  for (const source of ["const value: number = harvest();", "harvest(1);"]) {
+    assert.equal(compile(source).ok, false, source);
+  }
+});

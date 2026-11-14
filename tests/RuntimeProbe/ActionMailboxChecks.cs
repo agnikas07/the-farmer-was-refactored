@@ -77,6 +77,7 @@ internal static class ActionMailboxChecks
             Check(mailbox.Fail(ticket, expected), "Failure rejected.");
             Join(worker);
         }
+        foreach (var command in new[] { ActionMailbox.Command.CanHarvest, ActionMailbox.Command.Harvest })
         foreach (var ready in new[] { false, true })
         using (var mailbox = new ActionMailbox())
         {
@@ -84,14 +85,16 @@ internal static class ActionMailboxChecks
             {
                 using var engine = new Engine(options => options.MaxStatements(100));
                 engine.SetValue("canHarvest", new Func<bool>(mailbox.CanHarvest));
+                engine.SetValue("harvest", new Func<bool>(mailbox.Harvest));
                 engine.SetValue("doAFlip", new Action(mailbox.DoAFlip));
-                engine.Execute("const ready = canHarvest(); if (ready) doAFlip();");
+                var name = command == ActionMailbox.Command.Harvest ? "harvest" : "canHarvest";
+                engine.Execute($"const ready = {name}(); if (ready) doAFlip();");
                 Check(engine.Evaluate("ready").AsBoolean() == ready, "Boolean result changed.");
                 Check(engine.Evaluate("typeof can_harvest").AsString() == "undefined", "Native alias leaked.");
             });
             Wait(() => mailbox.HasPending);
             Check(mailbox.TryClaim(out var query), "Missing query.");
-            Check(query.Action == ActionMailbox.Command.CanHarvest, "Wrong query command.");
+            Check(query.Action == command, "Wrong boolean command.");
             Check(!worker.IsCompleted, "Query returned before native completion.");
             Check(mailbox.Complete(query, ready), "Query completion rejected.");
             if (ready)
@@ -112,7 +115,39 @@ internal static class ActionMailboxChecks
             Check(!mailbox.TryClaim(out _), "Cancelled query was claimed.");
             Join(worker);
         }
-        Console.WriteLine("Action mailbox: boolean query branching and cancellation PASS");
+        foreach (var claimBeforeStop in new[] { false, true })
+        using (var mailbox = new ActionMailbox())
+        {
+            var worker = Task.Run(() => Expect<OperationCanceledException>(() => mailbox.Harvest()));
+            Wait(() => mailbox.HasPending);
+            ActionMailbox.Ticket ticket = null;
+            if (claimBeforeStop) Check(mailbox.TryClaim(out ticket), "Harvest not claimed.");
+            mailbox.Dispose();
+            Check(!mailbox.TryClaim(out _), "Stopped harvest claimed.");
+            if (ticket != null) Check(!mailbox.Complete(ticket, true), "Stopped harvest completed.");
+            Join(worker);
+        }
+        using (var mailbox = new ActionMailbox())
+        {
+            var worker = Task.Run(() =>
+            {
+                using var engine = new Engine(options => options.MaxStatements(100));
+                engine.SetValue("harvest", new Func<bool>(mailbox.Harvest));
+                engine.SetValue("canHarvest", new Func<bool>(mailbox.CanHarvest));
+                engine.Execute("if (!harvest() || canHarvest()) throw new Error('Unexpected field state');");
+            });
+            Wait(() => mailbox.HasPending);
+            Check(mailbox.TryClaim(out var harvest), "Harvest missing.");
+            Check(harvest.Action == ActionMailbox.Command.Harvest, "Wrong first action.");
+            Check(!mailbox.HasPending && !worker.IsCompleted, "Query ran before harvest completed.");
+            Check(mailbox.Complete(harvest, true), "Harvest completion rejected.");
+            Wait(() => mailbox.HasPending);
+            Check(mailbox.TryClaim(out var query), "Post-harvest query missing.");
+            Check(query.Action == ActionMailbox.Command.CanHarvest, "Wrong follow-up action.");
+            Check(mailbox.Complete(query, false), "Post-harvest query rejected.");
+            Join(worker);
+        }
+        Console.WriteLine("Action mailbox: harvest/query branching, sequencing and cancellation PASS");
         Console.WriteLine("Action mailbox: camelCase JS sequencing, completion gate, cancellation, identity and failure PASS");
     }
 

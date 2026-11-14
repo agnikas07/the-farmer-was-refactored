@@ -8,7 +8,7 @@ namespace TheFarmerWasRefactored.Runtime
     // Only the JavaScript worker waits; claim and completion never wait on it.
     public sealed class ActionMailbox : IDisposable
     {
-        public enum Command { DoAFlip, CanHarvest }
+        public enum Command { DoAFlip, CanHarvest, Harvest }
 
         public sealed class Ticket
         {
@@ -33,6 +33,8 @@ namespace TheFarmerWasRefactored.Runtime
         public void DoAFlip() => Request(Command.DoAFlip);
 
         public bool CanHarvest() => Request(Command.CanHarvest);
+
+        public bool Harvest() => Request(Command.Harvest);
 
         private bool Request(Command command)
         {

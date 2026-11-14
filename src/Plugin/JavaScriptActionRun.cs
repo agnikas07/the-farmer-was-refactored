@@ -56,6 +56,11 @@ namespace TheFarmerWasRefactored
                         if (++requests == 1) timing?.Mark("first_request");
                         return mailbox.CanHarvest();
                     }));
+                    engine.SetValue("harvest", new Func<bool>(() =>
+                    {
+                        if (++requests == 1) timing?.Mark("first_request");
+                        return mailbox.Harvest();
+                    }));
                     timing?.Mark("player_ready");
                     engine.Execute(javascript);
                 }
@@ -72,6 +77,7 @@ namespace TheFarmerWasRefactored
             var completed = 0;
             var flips = 0;
             var queries = 0;
+            var harvests = 0;
             while (Volatile.Read(ref disposed) == 0)
             {
                 if (!mailbox.TryClaim(out var ticket))
@@ -83,7 +89,7 @@ namespace TheFarmerWasRefactored
                             report($"JavaScript action probe FAILED: {worker.Exception.GetBaseException().Message}");
                         else if (worker.IsCanceled || (expectedCalls.HasValue && completed != expectedCalls.Value))
                             report("JavaScript action probe: cancelled/incomplete");
-                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {flips} doAFlip calls; {queries} canHarvest calls");
+                        else if (!expectedCalls.HasValue) report($"JavaScript action probe: completed {flips} doAFlip calls; {queries} canHarvest calls; {harvests} harvest calls");
                         else report("JavaScript action probe: two doAFlip calls completed ALL PASS");
                         yield break;
                     }
@@ -97,19 +103,27 @@ namespace TheFarmerWasRefactored
                 if (completed == 0) timing?.Mark("first_claim");
                 var before = state.OpCount;
                 var query = ticket.Action == ActionMailbox.Command.CanHarvest;
-                var nativeName = query ? "can_harvest" : "do_a_flip";
+                var harvesting = ticket.Action == ActionMailbox.Command.Harvest;
+                var returnsBoolean = query || harvesting;
+                var nativeName = ticket.Action switch
+                {
+                    ActionMailbox.Command.DoAFlip => "do_a_flip",
+                    ActionMailbox.Command.CanHarvest => "can_harvest",
+                    ActionMailbox.Command.Harvest => "harvest",
+                    _ => throw new InvalidOperationException("Unsupported farm command.")
+                };
                 state.currentDependencies.Add((nativeName, node.boxedParams.wordStart, node.boxedParams.wordEnd));
                 var ops = BuiltinFunctions.Functions[nativeName].binding(
                     new List<IPyObject>(), Execution.sim, Execution, state.DroneId);
                 if (completed == 0) timing?.Mark("first_binding_returned");
                 if (node.CheckIncrementOpCount(state, Execution, ops)) yield return 0;
                 var charged = state.OpCount - before;
-                if (state.currentSideEffect != SideEffect.None || (query ? !(state.ReturnValue is PyBool) : !(state.ReturnValue is PyNone)) || charged <= 0)
+                if (state.currentSideEffect != SideEffect.None || (returnsBoolean ? !(state.ReturnValue is PyBool) : !(state.ReturnValue is PyNone)) || charged <= 0)
                 {
                     mailbox.Fail(ticket, new InvalidOperationException("Unexpected native completion."));
                     yield break;
                 }
-                var result = query && ((PyBool)state.ReturnValue).num != 0;
+                var result = returnsBoolean && ((PyBool)state.ReturnValue).num != 0;
                 if (!mailbox.Complete(ticket, result)) yield break;
                 completed++;
                 if (completed == 1) timing?.Mark("first_action_completed");
@@ -117,6 +131,11 @@ namespace TheFarmerWasRefactored
                 {
                     queries++;
                     report($"JavaScript action probe: canHarvest={result.ToString().ToLowerInvariant()} chargedOps={charged}");
+                }
+                else if (harvesting)
+                {
+                    harvests++;
+                    report($"JavaScript action probe: harvest={result.ToString().ToLowerInvariant()} chargedOps={charged}");
                 }
                 else report($"JavaScript action probe: doAFlip={++flips} chargedOps={charged}");
             }
