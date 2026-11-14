@@ -22,7 +22,7 @@ appear in BepInEx logs after Run. Native error popups are suppressed for marked
 windows, including native runtime error UI; consult the log. TypeScript windows
 cannot serve as native Python import modules. The marker requirement remains.
 
-## Manual checks (pending)
+## Manual checks
 
 With the game closed, deploy using `bash scripts/deploy-v8-probe.sh` and enable
 Enabled plus RunSourceInputProbe in the V8 diagnostic config. Other modes stay off.
@@ -41,5 +41,8 @@ Inspect `rg 'TypeScript source probe' .tools/game/BepInEx/LogOutput.log` after c
 Disable source-input mode after verification.
 
 Locked Unity build: zero warnings/errors. Existing desktop runtime, stepping,
-mailbox, and dispatch checks pass. Visual behavior and marker transitions require
-manual verification; these desktop checks do not test the native editor patches.
+mailbox, and dispatch checks pass. On 2026-11-13 the user confirmed no Python popup and one flip, native error
+restoration after removing the marker, and popup removal plus successful Run
+after restoring valid marked TypeScript. The fresh BepInEx log confirms one
+completed call at 400 operations and worker release. Desktop checks do not test
+the native editor patches. All local diagnostic flags were disabled afterward.
