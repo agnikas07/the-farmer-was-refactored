@@ -18,7 +18,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 - Startup milestone complete: C# plugin `0.1.0` loads through BepInEx in the isolated development game.
 - [PR #1: startup plugin and development workflow](https://github.com/agnikas07/the-farmer-was-refactored/pull/1) merged on 2026-11-07. It contained 189 additions and 4 deletions.
-- The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). No player-facing runtime, editor replacement, or documentation replacement exists yet. A development-only TypeScript compiler prototype now performs semantic checking and emits JavaScript/source maps; it is not connected to the game.
+- The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). The current development path connects embedded TypeScript compilation to Jint and native actions, with compiler popups and optional marker-free execution. Full editor and documentation replacement remain unfinished.
 - `src/Compiler` contains the compiler prototype and `examples` has a typed two-flip example. `docs/in-game` and `packaging` remain placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
 - No public playable release or Thunderstore package exists.
 - Native Windows and macOS testing is pending. Current validation covers startup and bounded runtime, stepping, dispatch, read-only simulation observation, the fixed native two-flip adapter, and JavaScript-to-native completion/Stop diagnostics, and Windows x64 V8 loading under Proton.
@@ -86,15 +86,55 @@ The runtime probe subsequently passed all four checks in-game on 2026-11-07; the
 
 This is not evidence of TypeScript functionality, gameplay parity, or other-platform support. An old log is not evidence that a new build loaded.
 
-## Next work, in small increments
+## Roadmap
 
-1. Dispatch feasibility is verified in Unity/Mono and PR #5 is merged. JavaScript round-trip, host error propagation, and queued cancellation pass in-game; owner-thread and capacity guards also pass on desktop. See [dispatch instructions](docs/design/dispatch-probe.md).
-2. Static game-action inspection is complete: [findings](docs/design/game-action-integration.md). Critical correction: native simulation runs on its own thread; PR #5 does not authorize unsynchronized farm mutations in Unity Update. A read-only simulation-thread/identity/timing probe is now implemented on `feat/simulation-observation-probe`; [manual validation](docs/design/simulation-probe.md) passed in Unity/Mono. The next branch, `feat/native-action-adapter`, adds a fixed two-flip custom Node using native dependency checks, built-in binding, and scheduling; [manual validation](docs/design/native-action-probe.md) passed in Unity/Mono. A per-run [action mailbox](docs/design/action-mailbox.md) now passes desktop Jint tests with camelCase doAFlip, separate claim/completion, cancellation, identity, and failure handling. Native wiring is now implemented in the opt-in [JavaScript action probe](docs/design/javascript-action-probe.md); Unity/Mono normal completion and manual Stop checks passed. Its bounded scheduler wait suspends world timers while waiting for the worker, so production computation timing remains undecided. Nested stacks, drone isolation, pause-aware budgets, and source mapping remain open.
-3. [TypeScript compiler prototype](docs/design/typescript-compiler.md) passes 13 desktop tests: strict semantic checking, original-source diagnostics, camelCase doAFlip, JavaScript emission, and source-map contents. Seven [TypeScript-to-Jint integration cases](docs/design/typescript-jint-pipeline.md) now pass against staged runtime DLLs on desktop. The first [embedded compiler host probe](docs/design/compiler-host-feasibility.md) loads TypeScript in Jint but fails library-reference discovery (Node 9, Jint 0). The [minimal reproduction](docs/design/loop-control-reproduction.md) isolates incorrect ordinary continue behavior inside labeled while/do loops; an isolated 4.16.4 comparison also fails. The [ClearScript/V8 comparison](docs/design/v8-compiler-host.md) now passes library discovery, loop control, semantic checks, output execution, and recovery on Linux x64 desktop. A separate opt-in [V8 loader probe](docs/design/v8-game-loader-probe.md) passes native evaluation, labeled-loop control, disposal, and fresh-engine creation in Unity/Mono under Proton; in-game TypeScript compilation and V8-to-Jint checks also pass; the fixed compiled two-flip program now passes native completion/Stop checks; Jint COMP-001 remains open. Runtime stack remapping and UI integration remain pending.
-4. Deliver one playable slice: TypeScript code window, a small typed farm API, run/stop controls, saved source, and a rewritten first lesson.
-5. Expand API, progression, modules, drones, and teaching material together; validate broader behavior and platforms before packaging a release.
+Agreed sequence: foundation → first playable lesson → reliable language system →
+full gameplay coverage → release. Each step stays in a focused PR; historical
+implementation evidence remains below and in `docs/design`.
 
-These are sequencing intentions, not completed work or blanket permission to merge/publish. Do not attempt the entire runtime/editor/docs replacement in one PR.
+### 1. Foundation — demonstrated, still development-only
+
+Embedded TypeScript compilation, Jint execution, native action scheduling,
+Run/Stop recovery, compiler popups, compiler reuse, and optional marker-free
+execution are verified under Unity/Mono on CachyOS/Proton. This does not establish
+production timing parity or complete language correctness.
+
+### 2. First playable lesson — current milestone
+
+1. Add `canHarvest(): boolean`, carrying native query results back to TypeScript.
+2. Add `harvest()` with native return values, costs, and unlock behavior.
+3. Replace a small introductory in-game lesson and example using both functions.
+4. Add typed directions and `move()`, then extend the lesson to farm traversal.
+5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
+
+The current PR implements only step 1. No harvest/move binding or lesson rewrite
+yet. Each subsequent step gets its own review and appropriate game testing.
+
+### 3. Runtime correctness checkpoint — before broad API expansion
+
+Resolve COMP-001 or choose a verified alternative runtime. Decide computation
+costs and simulation timing, resource budgets, pause/step behavior, and lifecycle
+handling (world changes, closing windows, cancellation races). Preserve native
+unlock rules. Tests must distinguish native action cost from JavaScript compute
+cost; current worker waiting freezes world time and is not a final design.
+
+### 4. Complete language and gameplay replacement
+
+- Editor: TypeScript highlighting, indentation, completion, runtime errors with
+  original source locations, and execution indicators.
+- Source: verified persistence, modules/imports, and handling existing Python code.
+- Gameplay: planting, inventory, entities/items, progression, advanced crops,
+  multiple drones, and simulations, expanding typed APIs and lessons together.
+- Teaching: replace tutorials, API documentation, tooltips, and examples with
+  TypeScript material throughout the game.
+
+### 5. Release readiness
+
+Package dependencies and installation/update workflows; establish compatibility
+checks and supported game versions. Test target platforms before claiming support.
+No public package exists; native Windows and macOS remain untested.
+
+These milestones are plans, not completed work or permission to merge/publish.
 
 ## Issues and fixes
 
@@ -182,3 +222,9 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - PR #28 manual progress: user confirms unmarked one-flip execution without Python errors, semantic rejection without actions, correction clearing the error and executing one flip, and compatibility with marked scripts. TypeScriptForAllWindows is now false locally; Enabled and RunSourceInputProbe remain true for the pending restart-to-marker-mode check. PR remains draft.
 
 - PR #28 manual validation complete: user confirms restart with TypeScriptForAllWindows false restores native Python errors, then marked TypeScript clears the error and performs one flip. Fresh disk log confirms marker-based startup, one completed action at 400 operations, and worker release; earlier all-window checks are user-reported because restart overwrote their log. All local diagnostic flags and TypeScriptForAllWindows are now false. Ready for review; not merged.
+
+- PR #28 merge confirmed at 8367d36. Branch `feat/can-harvest` begins the agreed first playable lesson with boolean query transport and native canHarvest scheduling. Roadmap reorganized into milestones. Locked builds pass; automated and manual checks recorded in [query design](docs/design/can-harvest.md).
+
+- canHarvest validation: 14 compiler tests, V8/compiler-worker suites, and runtime/mailbox/stepping/dispatch suites pass, including true/false conditional execution and query cancellation. Both locked plugin builds have zero warnings/errors. Local game deployment has Enabled, RunSourceInputProbe, and TypeScriptForAllWindows true for manual testing. Query field results, native cost, and unlock rejection remain unverified in-game.
+
+- PR #29 manual evidence: user confirms mature-grass query followed by one flip without harvesting; fresh log confirms true at 1 operation, one flip (599 operations in this session), and worker release. Native flip cost varies with operation duration. User has only one grass tile; in-game false case is deferred to harvest, with false transport/branching covered on desktop. Locked-query rejection remains untested. Local diagnostics and all-window mode disabled; PR ready for review, not merged. Next implement harvest and revisit the false case.
