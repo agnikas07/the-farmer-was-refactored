@@ -34,7 +34,9 @@ Public APIs use TypeScript-style camelCase: `doAFlip()`, and eventually
 The `// @refactored` first line currently selects TypeScript execution; without
 it, the game still uses its native language. It is a temporary diagnostic marker,
 not part of TypeScript or the intended finished experience. With source mode
-enabled, a single `doAFlip();` really does mean one flip.
+enabled, a single `doAFlip();` really does mean one flip. An opt-in
+[all-window TypeScript setting](docs/design/typescript-default-mode.md) removes
+the marker requirement after a restart; existing Python code is not converted.
 
 The editor still uses Python highlighting. Marked TypeScript windows suppress
 Python errors and show the first TypeScript compiler error after Run, with full

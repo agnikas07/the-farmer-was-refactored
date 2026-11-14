@@ -23,7 +23,7 @@ namespace TheFarmerWasRefactored
         private readonly int unityThread = Thread.CurrentThread.ManagedThreadId;
         private int claimed, disposed;
 
-        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, Action<string>, CancellationToken, string> compile = null)
+        public NativeActionProbe(Action<string> report, string compiledJavaScript = null, Func<string, Action<string>, CancellationToken, string> compile = null, bool allWindows = false)
         {
             this.report = report;
             this.compile = compile;
@@ -44,7 +44,7 @@ namespace TheFarmerWasRefactored
             {
                 if (compile != null)
                 {
-                    SourceEditorGuard.Install(harmony);
+                    SourceEditorGuard.Install(harmony, allWindows);
                     harmony.Patch(AccessTools.Method(typeof(CodeWindow), "StartExecution", new[] { typeof(bool) }),
                         prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeSourceRun)));
                 }
@@ -60,7 +60,9 @@ namespace TheFarmerWasRefactored
                     prefix: new HarmonyMethod(typeof(ActionSchedulerGate), nameof(ActionSchedulerGate.BeforeStop)));
             }
             catch { Dispose(); throw; }
-            if (compile != null) report($"{label}: ready; Run a window beginning with // @refactored");
+            if (compile != null) report(allWindows
+                ? $"{label}: ready; all code windows use TypeScript (no marker required)"
+                : $"{label}: ready; Run a window beginning with // @refactored");
             else report($"{label}: armed; run the marked two-line program in the normal farm.");
         }
 
