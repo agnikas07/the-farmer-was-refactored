@@ -26,6 +26,8 @@ test("semantic errors carry original one-based positions and block all output", 
   assert.equal(error.file, "/main.ts");
   assert.equal(error.line, 2);
   assert.equal(error.column, 7);
+  assert.equal(error.start, 17);
+  assert.equal(error.length, 5);
 });
 
 for (const source of [

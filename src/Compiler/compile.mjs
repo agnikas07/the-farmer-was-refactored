@@ -60,6 +60,8 @@ export function compile(source, libraries, api) {
       category: ts.DiagnosticCategory[item.category].toLowerCase(),
       message: ts.flattenDiagnosticMessageText(item.messageText, "\n"),
       file: item.file?.fileName,
+      start: item.start,
+      length: item.length,
       line: position ? position.line + 1 : undefined,
       column: position ? position.character + 1 : undefined,
     };

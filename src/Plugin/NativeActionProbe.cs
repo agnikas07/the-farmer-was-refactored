@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using HarmonyLib;
+using TheFarmerWasRefactored.Runtime;
 
 namespace TheFarmerWasRefactored
 {
@@ -78,8 +79,9 @@ namespace TheFarmerWasRefactored
             var timing = new SourceRunTiming(probe.messages.Enqueue);
             timing.Mark("source_captured");
             probe.messages.Enqueue($"{probe.label}: captured {source.Length} characters for this run");
+            var showError = SourceEditorGuard.BeginRun(__instance, source);
             MainSim.Inst.StopMainExecution();
-            MainSim.Inst.StartMainExecution(__instance, new FlipNode(__instance, probe, source, timing), false);
+            MainSim.Inst.StartMainExecution(__instance, new FlipNode(__instance, probe, source, timing, showError), false);
             return false;
         }
 
@@ -114,13 +116,15 @@ namespace TheFarmerWasRefactored
             private readonly NativeActionProbe probe;
             private readonly string source;
             private readonly SourceRunTiming timing;
-            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null, SourceRunTiming timing = null)
+            private readonly Action<CompilerDiagnosticException> showError;
+            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null, SourceRunTiming timing = null, Action<CompilerDiagnosticException> showError = null)
                 : base(window, source == null ? probe.marker.IndexOf("doAFlip", StringComparison.Ordinal) : 0,
                     (source ?? probe.marker).Length - 1)
             {
                 this.probe = probe;
                 this.source = source;
                 this.timing = timing;
+                this.showError = showError;
             }
 
             public override IEnumerable<double> Execute(ProgramState state, Execution execution, int depth)
@@ -137,7 +141,15 @@ namespace TheFarmerWasRefactored
                 state.CurrentExecutingNode = this;
                 var run = new JavaScriptActionRun(execution,
                     message => probe.messages.Enqueue(message.Replace("JavaScript action probe", probe.label)),
-                    probe.javascript, source == null ? (Func<CancellationToken, string>)null : token => probe.compile(source, timing.Mark, token),
+                    probe.javascript, source == null ? (Func<CancellationToken, string>)null : token =>
+                    {
+                        try { return probe.compile(source, timing.Mark, token); }
+                        catch (CompilerDiagnosticException error)
+                        {
+                            if (!token.IsCancellationRequested) showError?.Invoke(error);
+                            throw;
+                        }
+                    },
                     source == null ? (int?)2 : null, timing);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
@@ -150,7 +162,7 @@ namespace TheFarmerWasRefactored
             public override Node DeepCopy(Dictionary<object, object> copies)
             {
                 if (copies.TryGetValue(this, out var existing)) return (Node)existing;
-                var copy = new FlipNode(boxedParams.codeWindow, probe, source, timing);
+                var copy = new FlipNode(boxedParams.codeWindow, probe, source, timing, showError);
                 copies[this] = copy;
                 return copy;
             }
@@ -158,6 +170,7 @@ namespace TheFarmerWasRefactored
 
         public void Poll()
         {
+            if (compile != null) SourceEditorGuard.Poll();
             while (messages.TryDequeue(out var message)) report(message);
         }
 
@@ -167,6 +180,7 @@ namespace TheFarmerWasRefactored
             Interlocked.CompareExchange(ref active, null, this);
             Interlocked.Exchange(ref ActionSchedulerGate.Run, null)?.Dispose();
             harmony.UnpatchSelf();
+            if (compile != null) SourceEditorGuard.Reset();
         }
     }
 }

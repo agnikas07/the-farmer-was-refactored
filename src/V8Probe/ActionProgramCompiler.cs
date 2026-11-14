@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq;
+using TheFarmerWasRefactored.Runtime;
 using Microsoft.ClearScript.V8;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -57,7 +59,17 @@ namespace TheFarmerWasRefactored.V8Probe
             mark?.Invoke("emit_finished");
             var result = JObject.Parse(json);
             if ((bool?)result["ok"] != true || result["javascript"]?.Type != JTokenType.String)
-                throw new InvalidOperationException("TypeScript compilation failed: " + json);
+            {
+                var errors = (result["diagnostics"] as JArray)?.OfType<JObject>()
+                    .Where(item => (string)item["category"] == "error").ToArray();
+                var error = errors?.FirstOrDefault(item => (string)item["file"] == "/main.ts")
+                    ?? errors?.FirstOrDefault();
+                if (error == null) throw new InvalidOperationException("TypeScript compilation failed: " + json);
+                var local = (string)error["file"] == "/main.ts";
+                throw new CompilerDiagnosticException("TypeScript compilation failed: " + json,
+                    $"TypeScript TS{error["code"]}: {error["message"]}",
+                    local ? (int?)error["start"] ?? 0 : 0, local ? (int?)error["length"] ?? 1 : 1);
+            }
             return (string)result["javascript"];
         }
 
