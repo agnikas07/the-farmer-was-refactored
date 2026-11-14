@@ -47,8 +47,8 @@ diagnostics in the BepInEx log. See the
 setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 
 The first [TypeScript lesson](docs/in-game/first-program.md) replaces the in-game
-**First Program** page while source mode is enabled. Its native layout is awaiting
-manual verification; other documentation remains untranslated.
+**First Program** page while source mode is enabled. Its introductory layout, navigation, and first example are verified in-game;
+other documentation remains untranslated.
 
 ## What's sprouted?
 

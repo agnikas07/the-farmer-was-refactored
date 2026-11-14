@@ -29,7 +29,7 @@ untranslated pages are stated without sending players into Python examples.
 
 Automated checks compile all three exact lesson snippets in both source modes
 and verify action order and ready/unready branching with stub APIs. Build embeds
-the lesson; native rendering and navigation still need manual validation.
+the lesson. Manual results are recorded below.
 
 Manual checks: open Documentation home → First Program and verify the title
 "Your First TypeScript Harvest", readable layout, code blocks, home navigation,
@@ -37,3 +37,15 @@ and absence of the native runnable Python example. Try the first code example.
 Then check marker-based mode after restart and confirm its samples include the
 marker. Disabling source mode and restarting should restore the original page.
 Localization and other pages remain outside this PR.
+
+## Manual evidence — 2026-11-14
+
+Screenshots confirm the title, introductory text, flip/harvest examples, and
+mode-specific instructions render in the native window. User confirms home →
+First Program navigation and one-flip execution from the first example in both
+all-window and marker-based modes. Screenshots after disabling source mode and
+restarting confirm the original Python-oriented First Program page returns.
+
+All local diagnostic flags are disabled after verification. The full page across
+other window sizes, the tech-tree link, and other game languages were not
+separately tested. Only this English page is replaced.
