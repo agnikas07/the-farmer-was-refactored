@@ -1,6 +1,6 @@
 # Project status and handoff
 
-Last updated: 2026-11-07 (America/New_York).
+Last updated: 2026-11-13 (America/New_York).
 
 This is the canonical handoff for a new agent or session. Read it alongside `AGENTS.md` before starting work. It records verified facts, decisions, plans, and issues; the code and current GitHub state take precedence if this snapshot becomes stale.
 
@@ -160,3 +160,5 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - 2026-11-07: Branch `feat/typescript-source-input` adds opt-in actual source capture from code windows marked `// @refactored`, bypassing the native parser on ordinary Run. Compilation happens on the action worker; no user-code preflight executes. Desktop source/compiler/runtime checks and builds pass. [Manual validation](docs/design/typescript-source-input.md) passed under Unity/Mono on CachyOS/Proton: screenshots confirm 1/3 calls at 400 operations each, repeated Run, TS2322 rejection on line 3 with no action completions, and correction followed by one successful call in the same session. Stop screenshot and fresh on-disk log confirm compilation followed by worker released without completed calls. Earlier runs are screenshot-only because later launches overwrote their logs. All local diagnostic flags are now false. PR #22 is merged. Native highlighting/errors remain a known UI limitation.
 
 - 2026-11-07: README refreshed on `docs/readme-source-input-progress` to reflect verified embedded compilation and actual code-window input. Documents the temporary marker, Python editor indicators, development-only availability, and unresolved runtime/packaging choices. Documentation-only change; relative links and whitespace checked.
+
+- 2026-11-13: PR #23 merge confirmed. Branch `fix/typescript-python-diagnostics` adds scoped Python-parser bypass and stale popup cleanup for marked TypeScript windows. [Validation instructions](docs/design/typescript-editor-validation.md). Locked build and desktop runtime suites pass; visual popup suppression, marker transitions, and execution recovery remain pending. Enabled and RunSourceInputProbe are true locally; other diagnostic flags are false. Marker-free mode, TypeScript highlighting, and inline TypeScript diagnostics are still future work.
