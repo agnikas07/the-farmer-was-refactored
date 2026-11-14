@@ -24,7 +24,7 @@ namespace TheFarmerWasRefactored
             && Volatile.Read(ref disposed) == 0;
 
         internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();",
-            Func<string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null)
+            Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null)
         {
             Execution = execution;
             this.expectedCalls = expectedCalls;
@@ -37,7 +37,7 @@ namespace TheFarmerWasRefactored
                 stop.Token.ThrowIfCancellationRequested();
                 if (prepare != null)
                 {
-                    javascript = prepare();
+                    javascript = prepare(stop.Token);
                     report("JavaScript action probe: source compiled");
                 }
                 stop.Token.ThrowIfCancellationRequested();
