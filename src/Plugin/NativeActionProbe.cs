@@ -42,8 +42,11 @@ namespace TheFarmerWasRefactored
             try
             {
                 if (compile != null)
+                {
+                    SourceEditorGuard.Install(harmony);
                     harmony.Patch(AccessTools.Method(typeof(CodeWindow), "StartExecution", new[] { typeof(bool) }),
                         prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeSourceRun)));
+                }
                 var target = AccessTools.Method(typeof(MainSim), "StartMainExecution",
                     new[] { typeof(CodeWindow), typeof(Node), typeof(bool) });
                 if (target == null) throw new MissingMethodException("StartMainExecution");
@@ -65,7 +68,7 @@ namespace TheFarmerWasRefactored
             var probe = Volatile.Read(ref active);
             if (probe?.compile == null) return true;
             var source = ReadSource(__instance);
-            if (!source.Replace("\r\n", "\n").StartsWith("// @refactored\n", StringComparison.Ordinal)) return true;
+            if (!SourceEditorGuard.IsTypeScript(source)) return true;
             // This prefix runs on Unity's Run-button path, before the native parser.
             if (stepByStep)
             {
@@ -78,7 +81,7 @@ namespace TheFarmerWasRefactored
             return false;
         }
 
-        private static string ReadSource(CodeWindow window)
+        internal static string ReadSource(CodeWindow window)
         {
             var input = AccessTools.Property(typeof(CodeWindow), "CodeInput").GetValue(window);
             return (string)AccessTools.Property(input.GetType(), "text").GetValue(input);
