@@ -14,7 +14,8 @@ game-operation timing or an assurance of indefinite execution. Fixed feasibility
 probes retain their original 100-statement / 30-second limits.
 
 A computation-only loop fails with an explicit computation-limit message in the
-BepInEx log. Runtime-error popups remain a separate follow-up.
+BepInEx log. [Runtime-error popups](runtime-error-popups.md) now use the editor
+queue; native UI verification is pending.
 
 ## Validation
 

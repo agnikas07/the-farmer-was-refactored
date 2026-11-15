@@ -109,11 +109,10 @@ production timing parity or complete language correctness.
 
 The farm queries/actions and first lesson are merged (#29–31). Typed movement is merged (#32) for step 4; the traversal lesson follows separately. Each subsequent step gets its own review and appropriate game testing.
 
-Immediate follow-up before the traversal lesson: replace the prototype's per-run
-100-statement cap with a bounded computation-between-actions policy, retain Stop
-and runaway-loop protection, and surface runtime termination clearly. The fixed
-30-second watchdog also prevents continuous automation. Do not simply remove
-limits without testing cancellation and non-yielding loops.
+PR #33 fixes continuous farming with a renewable computation budget and removes
+the source-mode watchdog; farming, Stop, runaway protection, and recovery are
+verified in-game. Next surface runtime termination in the editor before teaching
+traversal.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
@@ -151,7 +150,7 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-004 | Tooling limitation | A file-level write permission for Proton's `dist.lock` caused sandbox mount failures, then prevented shell commands in that turn. | Avoid requesting file-level access to that lock. The user successfully ran the launch script in their normal terminal. Request only necessary directory permissions if automated testing is retried. | User launch verified; sandbox launch itself remains unverified. |
 | COMP-001 | Open | TypeScript 6.0.3 finds nine ES2020 library references under Node, zero under Jint 4.17.0; compilation reports missing global types. | Reduced to ordinary continue inside labeled while/do loops. Both 4.17.0 and isolated 4.16.4 fail; scratch scanner rewrite restores compilation, but no workaround ships. Compare another host or verified upstream fix. | Reproduced on desktop .NET; not tested on Unity/Mono. |
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
-| RUN-001 | Open | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget implemented on current branch; desktop tests pass, game verification pending. Runtime-error UI still pending. |
+| RUN-001 | Open | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget merged in #33; desktop and manual game checks pass. Runtime-error UI implemented on current branch; manual verification pending. |
 
 No open plugin behavior bug has been established by the limited startup test. Runtime scheduling and platform compatibility remain untested risks, not fixed bugs.
 
@@ -267,3 +266,5 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 - PR #33 manual progress: user confirms the requested continuous harvesting and Stop check behaved as expected. Fresh log confirms repeated successful harvests at 200 operations and worker release, with no FAILED entries. Duration is user-reported, not measured by this log. Computation-only exhaustion and subsequent recovery remain pending; source mode remains enabled.
 
 - PR #33 manual checks complete under Unity/Mono on CachyOS/Proton: continuous harvesting and Stop confirmed; user-pasted log confirms computation-only loop hit the 10,000-statement limit and released its worker. User confirms subsequent doAFlip() executes once in the same session. PR prepared for review, not merged. Source mode remains enabled locally. Next: expose runtime failures in the editor; RUN-001 execution fix verified, runtime UI portion remains open.
+
+- PR #33 merge confirmed at 42d59cd. Branch feat/runtime-error-popups reports Jint execution failures through the existing source/run-scoped editor queue, retaining logs and suppressing Stop errors. Compiler spans remain unchanged; runtime markers anchor at program start with an explicit source-location limitation. Both locked builds and runtime suites pass; deployed with source/all-window mode enabled. [Manual checks and scope](docs/design/runtime-error-popups.md). Native popup rendering, correction, thrown-error display, and Stop verification pending.

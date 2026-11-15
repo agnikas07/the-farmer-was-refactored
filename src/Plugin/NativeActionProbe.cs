@@ -119,8 +119,8 @@ namespace TheFarmerWasRefactored
             private readonly NativeActionProbe probe;
             private readonly string source;
             private readonly SourceRunTiming timing;
-            private readonly Action<CompilerDiagnosticException> showError;
-            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null, SourceRunTiming timing = null, Action<CompilerDiagnosticException> showError = null)
+            private readonly Action<Exception> showError;
+            public FlipNode(CodeWindow window, NativeActionProbe probe, string source = null, SourceRunTiming timing = null, Action<Exception> showError = null)
                 : base(window, source == null ? probe.marker.IndexOf("doAFlip", StringComparison.Ordinal) : 0,
                     (source ?? probe.marker).Length - 1)
             {
@@ -153,7 +153,7 @@ namespace TheFarmerWasRefactored
                             throw;
                         }
                     },
-                    source == null ? (int?)2 : null, timing);
+                    source == null ? (int?)2 : null, timing, showError);
                 if (Interlocked.CompareExchange(ref ActionSchedulerGate.Run, run, null) != null)
                 {
                     run.Dispose();
