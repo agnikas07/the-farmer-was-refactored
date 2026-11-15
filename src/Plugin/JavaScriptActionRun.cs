@@ -11,6 +11,7 @@ namespace TheFarmerWasRefactored
     internal sealed class JavaScriptActionRun : IDisposable
     {
         internal readonly Execution Execution;
+        internal readonly CodeWindow SourceWindow;
         private readonly ActionMailbox mailbox;
         private readonly FarmExecutionBudget computationBudget = new FarmExecutionBudget();
         private readonly CancellationTokenSource stop = new CancellationTokenSource();
@@ -25,9 +26,10 @@ namespace TheFarmerWasRefactored
             && Volatile.Read(ref disposed) == 0;
 
         internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();",
-            Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null, Action<Exception> showError = null)
+            Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null, Action<Exception> showError = null, CodeWindow sourceWindow = null)
         {
             Execution = execution;
+            SourceWindow = sourceWindow;
             mailbox = new ActionMailbox(prepare == null ? (Action)null : computationBudget.Reset);
             this.expectedCalls = expectedCalls;
             this.timing = timing;

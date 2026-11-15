@@ -70,6 +70,15 @@ namespace TheFarmerWasRefactored
             });
         }
 
+        internal static void Forget(CodeWindow window)
+        {
+            // Removing the state also rejects errors already queued by this run.
+            if (!errors.TryGetValue(window, out var state)) return;
+            state.Version++;
+            errors.Remove(window);
+            CloseError.Invoke(window, null);
+        }
+
         internal static void Poll()
         {
             while (pending.TryDequeue(out var apply)) apply();
