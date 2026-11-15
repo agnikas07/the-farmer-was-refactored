@@ -20,7 +20,9 @@ and manually maintained alongside farm.d.ts.
 
 Desktop checks cover reordered candidates, unmapped/native names and invalid
 indices. Both locked plugin builds and runtime regressions pass.
-Native tooltip layout, hover selection and mode isolation remain pending.
+User confirms move signature/directions/example, harvest readiness warning and
+Tab insertion, and no tooltip for const under Unity/Proton on CachyOS. Other API
+tooltip layouts and Python-mode tooltip behavior were not separately rechecked.
 
 Manual check: restart, type move, then hover the move entry in the suggestions.
 Expect move(direction: Direction): boolean, lowercase direction strings, and
