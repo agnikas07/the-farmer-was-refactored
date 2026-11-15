@@ -16,7 +16,7 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 ## Current snapshot
 
-Merged through [PR #39](https://github.com/agnikas07/the-farmer-was-refactored/pull/39).
+Merged through [PR #41](https://github.com/agnikas07/the-farmer-was-refactored/pull/41), excluding closed, unmerged #37.
 This section supersedes historical snapshots below.
 
 | Area | Verified state | Remaining limits |
@@ -24,25 +24,26 @@ This section supersedes historical snapshots below.
 | Execution | TypeScript 6.0.3 in ClearScript/V8 7.5.1.1 → Jint 4.18.0 → native actions | Development-only; computation timing is not gameplay parity |
 | Farm API | doAFlip, canHarvest, harvest, move and Direction | Native failed harvest/blocked move and unlock rejection not fully verified |
 | Loops | Continuous farming, Stop, runaway limit and recovery; labeled continue fixed | 10,000 statements between completed calls; per-run 8 MB allocation/recursion 64 limits |
-| Editor | Compiler/runtime popups, marker-free mode, static TS suggestions and API suggestion help | Python highlighting/indentation; no semantic completion or exact runtime locations |
+| Editor | Compiler/runtime popups, marker-free mode, static TS suggestions and API suggestion/code-hover help | Python highlighting/indentation; no semantic completion or exact runtime locations |
 | Teaching | First Program: grass harvest and two-tile patrol | Other pages remain native/Python |
 | Persistence | User confirms code survives exit/reload and patrol runs/stops again | Broader lifecycle transitions and races unverified |
 | Platforms | Windows game under Proton on CachyOS, Unity Mono | Native Windows/macOS/Linux unverified; no public package |
 
 ### Pick up here
 
-1. **Code-hover help:** [PR #40](https://github.com/agnikas07/the-farmer-was-refactored/pull/40),
-   branch `feat/typescript-code-hover`, is draft. Builds/runtime tests pass and its
-   binaries are deployed. Restart and hover `move` in `move("east");` with the
-   suggestions closed. Verify typed help, unknown-name suppression, and native-mode
-   isolation. It reuses #39 descriptions; static name matching is not symbol analysis.
-2. **Do not merge lifecycle PR #37 as-is.** The close-running-window test is not
-   reachable through the normal UI. X after Stop asks to permanently delete the
-   file; never use that as a casual close test. Esc opens an overlay while scripts
-   continue normally. No lifecycle leak was demonstrated. Reassess actual save
-   replacement/scene teardown and native call paths before revising or closing it.
-3. After the hover slice, choose one small runtime/editor task. Priorities remain
-   computation timing, real lifecycle transitions, pause/step, TypeScript coloring
+1. **Hover slice merged:** #40 adds code-text API help; the user confirms the
+   move signature/help appears after restart. Builds/runtime tests pass. Unknown-name
+   suppression and Python-mode code-hover isolation were not separately rechecked.
+   #41 refreshes README/handoff; both merges confirmed on GitHub.
+2. **Lifecycle PR #37 is closed without merging.** Its branch
+   `fix/runtime-lifecycle-cleanup` is retained for reference. No lifecycle leak was
+   demonstrated. Running windows cannot normally be closed; X after Stop asks to
+   permanently delete the file. Esc is an overlay and continued execution is normal.
+   Any future lifecycle fix needs actual save/scene call-path inspection, a
+   reproduced stranded worker, and transition/recovery validation. Do not revive
+   the speculative hooks solely because the teardown methods lack direct stop calls.
+3. Choose one small runtime/editor task. Priorities remain computation timing,
+   investigation of real lifecycle transitions, pause/step, TypeScript coloring
    and indentation. Avoid broad API expansion until the runtime checkpoint is assessed.
 
 ### Local testing and workflow
@@ -192,7 +193,7 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
 | RUN-001 | Fixed (#33–34 merged) | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget merged in #33; desktop and manual game checks pass. Runtime-error UI merged and verified in #34: budget/thrown-error popups, correction and Stop pass. |
 
-Remaining limitations include simulation-time accounting, real lifecycle transitions, source-mode pause/step, TypeScript coloring/indentation, and semantic completion. PR #37 is an unverified cleanup proposal, not a demonstrated bug fix.
+Remaining limitations include simulation-time accounting, real lifecycle transitions, source-mode pause/step, TypeScript coloring/indentation, and semantic completion. PR #37 is closed and unmerged; lifecycle cleanup remains an investigation, not a demonstrated bug fix.
 
 For each new issue, assign a stable ID and record reproduction/evidence, status, fix/workaround, and verification or remaining uncertainty. Never label a workaround as a root-cause fix.
 
@@ -337,3 +338,5 @@ superseded. Use the current snapshot and GitHub state when resuming.
 - PR #39 manual checks complete for the requested slice: user confirms move signature/directions/example, harvest readiness warning and Tab insertion, and no tooltip for const. Evidence is user-reported under Unity/Proton on CachyOS in all-window mode. Python-mode tooltip behavior and other API tooltip layouts were not separately rechecked. PR ready for review, not merged; source/all-window mode remains enabled. PR #37 remains draft/excluded.
 
 - PR #39 merge confirmed at 7fbc529. Branch feat/typescript-code-hover shares API help with code-text hover and bypasses Python help/value lookup only in TypeScript windows. Native hover positioning remains; this is static name-based help, not semantic symbol inspection. Locked builds/runtime checks pass; native hook/hover verification pending. Source/all-window mode enabled; lifecycle PR #37 remains excluded.
+
+- Final session handoff: user confirms move code-hover help works; GitHub confirms #40/#41 merged (main 3209bee). #37 closed without merging at user request with explanatory findings; remote branch retained. No code changes in this handoff update, no new tests required. Source/all-window config and deployed #40 binaries unchanged.
