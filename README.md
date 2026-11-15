@@ -44,9 +44,11 @@ the marker requirement after a restart; existing Python code is not converted.
 
 TypeScript windows suppress Python parser errors and show compiler and runtime
 error popups. Suggestions use camelCase APIs and TypeScript keywords; hovering a
-farm API suggestion shows its signature and example. Syntax highlighting is still
-Python-based, and completion is a small static vocabulary rather than semantic
-IntelliSense. Runtime errors do not yet identify their exact source location. See the
+farm API suggestion or code identifier shows its signature and example.
+[TypeScript coloring, `{}`/`()`/`[]`/quote auto-closing, and `{`/`(`/`[` indentation](docs/design/typescript-editor-style.md)
+are implemented and verified in-game (search highlights, IME underlines, and Python-mode isolation are desktop-tested only). Completion is
+still a small static vocabulary rather than semantic IntelliSense, and runtime
+errors do not yet identify their exact source location. See the
 [source-input test instructions](docs/design/typescript-source-input.md) for
 setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 
@@ -64,7 +66,7 @@ Stop, and save/reload are verified in-game. Other documentation remains untransl
 | Embedded compiler | TypeScript in V8 verified under Unity/Mono |
 | Compiled TypeScript → Jint → native actions | Completion and Stop verified in-game |
 | Actual code-window source | One/three flips, repeated Run, type-error rejection, recovery, and Stop verified |
-| Editor errors, suggestions & suggestion help | Verified; highlighting and semantic completion unfinished |
+| Editor errors, suggestions & help | Verified; static vocabulary; TS coloring, `{}`/`()`/`[]`/quote auto-close & indent verified |
 | First Program lesson | Harvesting and two-tile patrol verified, including save/reload |
 | Continuous loops | Native calls renew the computation budget; Stop and runaway protection verified |
 | Full farming API, modules & drones | Planned |
