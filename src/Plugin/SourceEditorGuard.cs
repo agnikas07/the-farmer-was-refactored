@@ -54,7 +54,7 @@ namespace TheFarmerWasRefactored
             return false;
         }
 
-        internal static Action<CompilerDiagnosticException> BeginRun(CodeWindow window, string source)
+        internal static Action<Exception> BeginRun(CodeWindow window, string source)
         {
             var state = errors.GetValue(window, _ => new ErrorState());
             state.Source = source;
@@ -66,7 +66,7 @@ namespace TheFarmerWasRefactored
             {
                 if (window == null || !errors.TryGetValue(window, out var current) || current != state
                     || state.Version != version || NativeActionProbe.ReadSource(window) != source) return;
-                state.Error = error;
+                state.Error = RuntimeErrorReporter.ForEditor(error);
             });
         }
 

@@ -25,7 +25,7 @@ namespace TheFarmerWasRefactored
             && Volatile.Read(ref disposed) == 0;
 
         internal JavaScriptActionRun(Execution execution, Action<string> report, string javascript = "doAFlip(); doAFlip();",
-            Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null)
+            Func<CancellationToken, string> prepare = null, int? expectedCalls = 2, SourceRunTiming timing = null, Action<Exception> showError = null)
         {
             Execution = execution;
             mailbox = new ActionMailbox(prepare == null ? (Action)null : computationBudget.Reset);
@@ -73,7 +73,7 @@ namespace TheFarmerWasRefactored
                         if (++requests == 1) timing?.Mark("first_request");
                     });
                     timing?.Mark("player_ready");
-                    engine.Execute(javascript);
+                    RuntimeErrorReporter.Execute(() => engine.Execute(javascript), stop.Token, showError);
                 }
             });
         }
