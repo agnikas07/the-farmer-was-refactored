@@ -11,8 +11,8 @@ lessons that teach the new language while preserving the farming mechanics.
 [Progress & plans](PROJECT_STATUS.md) · [Development guide](docs/development.md) · [TypeScript example](examples/two-flips.ts)
 
 > 🌱 **Still growing.** This is a development prototype, not a playable release.
-> You can now run TypeScript from marked code windows through an opt-in
-> diagnostic. The editor overhaul is unfinished, and there is no mod-store package.
+> You can run TypeScript, harvest grass, and patrol neighboring tiles through
+> opt-in development settings. The editor overhaul is unfinished, and there is no mod-store package.
 
 ## A little taste of the harvest
 
@@ -42,16 +42,17 @@ enabled, a single `doAFlip();` really does mean one flip. An opt-in
 [all-window TypeScript setting](docs/design/typescript-default-mode.md) removes
 the marker requirement after a restart; existing Python code is not converted.
 
-The editor still uses Python highlighting. Marked TypeScript windows suppress
-Python errors and show the first TypeScript compiler error after Run, with full
-diagnostics in the BepInEx log. See the
+TypeScript windows suppress Python parser errors and show compiler and runtime
+error popups. Suggestions use camelCase APIs and TypeScript keywords; hovering a
+farm API suggestion shows its signature and example. Syntax highlighting is still
+Python-based, and completion is a small static vocabulary rather than semantic
+IntelliSense. Runtime errors do not yet identify their exact source location. See the
 [source-input test instructions](docs/design/typescript-source-input.md) for
 setup, supported behavior, and limits; this is not a general-purpose farming mod yet.
 
-The first [TypeScript lesson](docs/in-game/first-program.md) replaces the in-game
-**First Program** page while source mode is enabled. Its introductory layout, navigation, and first example are verified in-game;
-The lesson now also introduces continuous harvesting and a two-tile patrol;
-their rendering and the patrol with clean Stop are verified in-game. Other documentation remains untranslated.
+The [First Program lesson](docs/in-game/first-program.md) teaches your first
+harvest, continuous polling, and a two-tile patrol. Its rendering, patrol behavior,
+Stop, and save/reload are verified in-game. Other documentation remains untranslated.
 
 ## What's sprouted?
 
@@ -63,7 +64,9 @@ their rendering and the patrol with clean Stop are verified in-game. Other docum
 | Embedded compiler | TypeScript in V8 verified under Unity/Mono |
 | Compiled TypeScript → Jint → native actions | Completion and Stop verified in-game |
 | Actual code-window source | One/three flips, repeated Run, type-error rejection, recovery, and Stop verified |
-| TypeScript editor polish & rewritten lessons | Planned; Python indicators still appear |
+| Editor errors, suggestions & suggestion help | Verified; highlighting and semantic completion unfinished |
+| First Program lesson | Harvesting and two-tile patrol verified, including save/reload |
+| Continuous loops | Native calls renew the computation budget; Stop and runaway protection verified |
 | Full farming API, modules & drones | Planned |
 | Playable release | Not yet |
 
@@ -84,7 +87,7 @@ npm ci --ignore-scripts --cache .tools/npm-cache
 npm run test:compiler
 ```
 
-That runs the 13 compiler tests without launching the game. Once the .NET/game
+That runs the compiler and lesson-example tests without launching the game. Once the .NET/game
 development prerequisites are set up, the
 [TypeScript-to-Jint check](docs/design/typescript-jint-pipeline.md) tests the emitted
 JavaScript against the staged runtime.
@@ -92,8 +95,9 @@ JavaScript against the staged runtime.
 Node is a **development tool** used to prepare the compiler bundle. The verified
 in-game diagnostic hosts TypeScript in ClearScript/V8 and executes the emitted
 JavaScript in Jint; the game does not launch Node. Release packaging and the final
-runtime choice remain open, including a known Jint labeled-loop issue tracked in
-[project status](PROJECT_STATUS.md).
+runtime choice remain open. Jint 4.18.0 fixes the previously observed labeled-loop
+issue; regression checks and in-game loop tests pass. See
+[project status](PROJECT_STATUS.md) for remaining correctness work.
 
 ## Find your patch of the field
 
@@ -106,7 +110,7 @@ runtime choice remain open, including a known Jint labeled-loop issue tracked in
 | [examples](examples) | TypeScript examples for the compiler prototype |
 | [tests](tests) | Compiler, runtime, and integration checks |
 | [docs/design](docs/design) | Architecture findings and diagnostic instructions |
-| [docs/in-game](docs/in-game) | Future player lessons and reference material |
+| [docs/in-game](docs/in-game) | Embedded TypeScript lesson and future reference material |
 | [packaging](packaging) | Future release packaging |
 
 ## Help tend the project

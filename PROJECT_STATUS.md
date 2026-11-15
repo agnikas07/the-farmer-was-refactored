@@ -16,12 +16,55 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 ## Current snapshot
 
-- Startup milestone complete: C# plugin `0.1.0` loads through BepInEx in the isolated development game.
-- [PR #1: startup plugin and development workflow](https://github.com/agnikas07/the-farmer-was-refactored/pull/1) merged on 2026-11-07. It contained 189 additions and 4 deletions.
-- The Jint 4.17.0 feasibility probe is merged in PR #3: JavaScript evaluation, host callback, statement budget, running-loop cancellation, and fresh-engine recovery pass on desktop .NET. All four checks also passed in the development game under Unity/Mono on CachyOS/Proton (2026-11-07). The current development path connects embedded TypeScript compilation to Jint and native actions, with compiler popups and optional marker-free execution. Full editor and documentation replacement remain unfinished.
-- `src/Compiler` contains the compiler prototype and `examples` has a typed two-flip example. `docs/in-game` and `packaging` remain placeholders. `src/Runtime` and `tests/RuntimeProbe` now contain the diagnostic.
-- No public playable release or Thunderstore package exists.
-- Native Windows and macOS testing is pending. Current validation covers startup and bounded runtime, stepping, dispatch, read-only simulation observation, the fixed native two-flip adapter, and JavaScript-to-native completion/Stop diagnostics, and Windows x64 V8 loading under Proton.
+Merged through [PR #39](https://github.com/agnikas07/the-farmer-was-refactored/pull/39).
+This section supersedes historical snapshots below.
+
+| Area | Verified state | Remaining limits |
+| --- | --- | --- |
+| Execution | TypeScript 6.0.3 in ClearScript/V8 7.5.1.1 → Jint 4.18.0 → native actions | Development-only; computation timing is not gameplay parity |
+| Farm API | doAFlip, canHarvest, harvest, move and Direction | Native failed harvest/blocked move and unlock rejection not fully verified |
+| Loops | Continuous farming, Stop, runaway limit and recovery; labeled continue fixed | 10,000 statements between completed calls; per-run 8 MB allocation/recursion 64 limits |
+| Editor | Compiler/runtime popups, marker-free mode, static TS suggestions and API suggestion help | Python highlighting/indentation; no semantic completion or exact runtime locations |
+| Teaching | First Program: grass harvest and two-tile patrol | Other pages remain native/Python |
+| Persistence | User confirms code survives exit/reload and patrol runs/stops again | Broader lifecycle transitions and races unverified |
+| Platforms | Windows game under Proton on CachyOS, Unity Mono | Native Windows/macOS/Linux unverified; no public package |
+
+### Pick up here
+
+1. **Code-hover help:** [PR #40](https://github.com/agnikas07/the-farmer-was-refactored/pull/40),
+   branch `feat/typescript-code-hover`, is draft. Builds/runtime tests pass and its
+   binaries are deployed. Restart and hover `move` in `move("east");` with the
+   suggestions closed. Verify typed help, unknown-name suppression, and native-mode
+   isolation. It reuses #39 descriptions; static name matching is not symbol analysis.
+2. **Do not merge lifecycle PR #37 as-is.** The close-running-window test is not
+   reachable through the normal UI. X after Stop asks to permanently delete the
+   file; never use that as a casual close test. Esc opens an overlay while scripts
+   continue normally. No lifecycle leak was demonstrated. Reassess actual save
+   replacement/scene teardown and native call paths before revising or closing it.
+3. After the hover slice, choose one small runtime/editor task. Priorities remain
+   computation timing, real lifecycle transitions, pause/step, TypeScript coloring
+   and indentation. Avoid broad API expansion until the runtime checkpoint is assessed.
+
+### Local testing and workflow
+
+- Local V8 config: Enabled, RunSourceInputProbe and TypeScriptForAllWindows true;
+  restart after config/binary changes. Other diagnostics off. No marker needed.
+- Save0 is the isolated 4×4 development farm; Save1 preserves the early-game save.
+  Backup: `work/save-backups/pre-dev-unlocks-20261114T234025Z`. Do not overwrite
+  either save or assume every feature/unlock/DLC behavior is verified.
+- User merges PRs; never merge for them. Keep changes small (ideally 200–400 lines).
+  Give one manual check at a time and distinguish user reports from direct logs.
+- After switching branches, checkout and deployed binaries can differ. Current
+  deployed code is #40; rebuild/deploy intentionally, not just because of a switch.
+- Build/deploy: `bash scripts/deploy-v8-probe.sh`. Desktop regression:
+  `source scripts/dev-env.sh`, then
+  `XDG_RUNTIME_DIR="$PWD/.tools/runtime" bash scripts/test-runtime.sh`.
+  Compiler tests: `npm run test:compiler`.
+  V8 integration: same XDG setting with `bash scripts/probe-v8-compiler-host.sh`.
+- Launch: `bash scripts/launch-dev.sh`. Do not pass the build-only XDG override.
+  Log: `.tools/game/BepInEx/LogOutput.log`; a new launch overwrites old evidence.
+- Session permissions may need repo and repo/.git write grants plus network.
+  Read AGENTS.md, preserve uncommitted changes, and verify GitHub states.
 
 ## Decisions and proposals
 
@@ -37,9 +80,9 @@ The user wants the agent to take initiative and perform authorized setup/impleme
 
 ### Proposed, not yet selected or proven
 
-- Jint 4.18.0 is being validated for the player runtime; final production runtime selection remains open.
-- Compiler hosting/bundling is undecided. Prefer a release that does not require players to install Node.js separately.
-- Synchronous-looking farm commands, global beginner API, shared API metadata for declarations/docs, and compiler instrumentation are design proposals.
+- Jint 4.18.0 is verified for the tested player-runtime slice; final production runtime selection remains open.
+- V8 hosts the compiler in the current implementation; release packaging remains undecided. Players should not need a separate Node.js installation.
+- Synchronous-looking farm commands and the global beginner API are implemented for four functions. Shared API metadata and compiler instrumentation remain proposals.
 - Beyond the agreed naming convention/examples, API coverage, module model, execution scheduler, computation tick accounting, and drone state transfer remain undecided.
 - TypeScript support does not automatically provide Node.js, browser APIs, or arbitrary npm package compatibility.
 
@@ -99,7 +142,7 @@ Run/Stop recovery, compiler popups, compiler reuse, and optional marker-free
 execution are verified under Unity/Mono on CachyOS/Proton. This does not establish
 production timing parity or complete language correctness.
 
-### 2. First playable lesson — current milestone
+### 2. First playable lesson — demonstrated
 
 1. Add `canHarvest(): boolean`, carrying native query results back to TypeScript.
 2. Add `harvest()` with native return values, costs, and unlock behavior.
@@ -107,16 +150,13 @@ production timing parity or complete language correctness.
 4. Add typed directions and `move()`, then extend the lesson to farm traversal.
 5. Verify the whole slice: Run, Stop, correction, save, reload, and repetition.
 
-The farm queries/actions and first lesson are merged (#29–31). Typed movement is merged (#32) for step 4; the traversal lesson follows separately. Each subsequent step gets its own review and appropriate game testing.
-
-PR #33 fixes continuous farming with a renewable computation budget and removes
-the source-mode watchdog; farming, Stop, runaway protection, and recovery are
-verified in-game. Next surface runtime termination in the editor before teaching
-traversal.
+Steps 1–5 pass for the tested grass/patrol slice (#29–35). Continuous execution
+limits and runtime error popups are fixed (#33–34). Save/reload/repetition are
+user-confirmed. This does not establish every native failure/unlock case.
 
 ### 3. Runtime correctness checkpoint — before broad API expansion
 
-Resolve COMP-001 or choose a verified alternative runtime. Decide computation
+COMP-001 is fixed in #36. Next decide computation
 costs and simulation timing, resource budgets, pause/step behavior, and lifecycle
 handling (world changes, closing windows, cancellation races). Preserve native
 unlock rules. Tests must distinguish native action cost from JavaScript compute
@@ -148,15 +188,15 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-002 | Fixed | Compiler could not resolve `MonoBehaviour` through BepInEx. | Reference both local `UnityEngine.dll` and `UnityEngine.CoreModule.dll`; do not copy game references into plugin output. | Clean build and actual plugin startup. |
 | DEV-003 | Workaround | Sandboxed .NET build could not create a mutex under `/run/user/1000`. | Use a private `.tools/runtime` directory with mode 700 and set `XDG_RUNTIME_DIR` for the build command only. | Build passed; commands in development guide. |
 | DEV-004 | Tooling limitation | A file-level write permission for Proton's `dist.lock` caused sandbox mount failures, then prevented shell commands in that turn. | Avoid requesting file-level access to that lock. The user successfully ran the launch script in their normal terminal. Request only necessary directory permissions if automated testing is retried. | User launch verified; sandbox launch itself remains unverified. |
-| COMP-001 | Fixed in PR #36 (awaiting merge) | TypeScript 6.0.3 finds nine ES2020 library references under Node, zero under Jint 4.17.0; compilation reports missing global types. | Upgrade to upstream Jint 4.18.0 (Acornima 1.9.1), which fixes labeled while/do continue. V8 remains the compiler host; no source rewriting. | 4.17.0 failures reproduced; all six cases pass on 4.18.0 desktop. User confirms labeled while/do each reach the following flip under Unity/Proton, plus normal patrol and Stop. |
+| COMP-001 | Fixed (#36 merged) | TypeScript 6.0.3 finds nine ES2020 library references under Node, zero under Jint 4.17.0; compilation reports missing global types. | Upgrade to upstream Jint 4.18.0 (Acornima 1.9.1), which fixes labeled while/do continue. V8 remains the compiler host; no source rewriting. | 4.17.0 failures reproduced; all six cases pass on 4.18.0 desktop. User confirms labeled while/do each reach the following flip under Unity/Proton, plus normal patrol and Stop. |
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
-| RUN-001 | Open | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget merged in #33; desktop and manual game checks pass. Runtime-error UI verified on PR #34 (not yet merged): budget/thrown-error popups, correction and Stop pass. |
+| RUN-001 | Fixed (#33–34 merged) | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget merged in #33; desktop and manual game checks pass. Runtime-error UI merged and verified in #34: budget/thrown-error popups, correction and Stop pass. |
 
-No open plugin behavior bug has been established by the limited startup test. Runtime scheduling and platform compatibility remain untested risks, not fixed bugs.
+Remaining limitations include simulation-time accounting, real lifecycle transitions, source-mode pause/step, TypeScript coloring/indentation, and semantic completion. PR #37 is an unverified cleanup proposal, not a demonstrated bug fix.
 
 For each new issue, assign a stable ID and record reproduction/evidence, status, fix/workaround, and verification or remaining uncertainty. Never label a workaround as a root-cause fix.
 
-## Current compiler-host investigation
+## Historical compiler-host investigation (superseded by current snapshot)
 
 - 2026-11-07: PR #17 merged. ClearScript/V8 7.5.1.1 passes the isolated Linux x64 compiler-host probe; observed load about 0.3 s and tiny compilations about 0.1–0.3 s. It is a candidate only, with native packaging costs; full compiler hosting in Unity/Proton remains unverified. The desktop comparison did not change the main plugin. Branch `feat/v8-game-loader-probe` adds a separate Windows x64 loader diagnostic; locked netstandard2.1 build passes with zero warnings/errors. PR #18 passes manual Unity/Proton verification: screenshot and fresh on-disk log confirm native evaluation/loop control on worker 10 versus Unity 1, disposal/fresh-engine PASS, and ALL PASS. Its local Enabled setting is now false; all main-plugin diagnostics remain disabled. PR #18 is merged. Branch `feat/v8-game-compiler-probe` adds the [in-game compiler diagnostic](docs/design/v8-game-compiler-probe.md). The shared checks pass on Linux x64 desktop, and the locked Unity build has zero warnings/errors. The generated compiler bundle and notices are deployed locally; Enabled and RunCompilerProbe were enabled for manual testing. Screenshot and fresh BepInEx log confirm all compiler checks pass in Unity/Mono on CachyOS/Proton: load 353 ms, typed loop 342 ms, semantic rejection 172 ms, snake_case rejection 151 ms, module rejection 0 ms, recovery 113 ms. PR #19 is merged. Both diagnostic settings are now false; main-plugin diagnostics remain disabled. Branch `feat/v8-to-jint-game-probe` adds the [V8-to-Jint pipeline diagnostic](docs/design/v8-to-jint-game-probe.md). Shared V8/Jint desktop checks and locked builds pass. PR #20 verified under Unity/Mono on CachyOS/Proton: user screenshot and fresh BepInEx log confirm all seven checks and ALL PASS. Load 317 ms; typed loop 495 ms; semantic rejection 141 ms; snake_case rejection 148 ms; module rejection 0 ms; recovery 100 ms; enum/generic/optional access 159 ms. Valid cases include the insufficient-statement-budget check. All three local diagnostic settings are now false. PR #20 is merged. Next connect compiled output to the native action mailbox after this boundary is verified. See [instructions](docs/design/v8-game-loader-probe.md).
 
@@ -172,6 +212,9 @@ For each new issue, assign a stable ID and record reproduction/evidence, status,
 6. Update this file with new decisions, evidence, bugs/fixes, next steps, and PR state. Exclude secrets and large raw logs.
 
 ## Handoff history
+
+Entries below describe their original dates/branches; pending states may have been
+superseded. Use the current snapshot and GitHub state when resuming.
 
 - 2026-11-07: Repository and local toolchain established. Startup plugin verified on CachyOS/Proton; PR #1 merged.
 - 2026-11-07: Added this handoff record at the user's request. PR #2 merged; the status file is now part of the handoff workflow.
