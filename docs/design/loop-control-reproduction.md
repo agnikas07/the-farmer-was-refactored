@@ -28,7 +28,7 @@ XDG_RUNTIME_DIR="$PWD/.tools/runtime" bash scripts/probe-loop-control.sh
 
 One JSON fixture supplies both hosts. Node checks all six cases first; the staged
 Jint runner then prints every result and exits nonzero if any differ from 2.
-This is a separate exploratory probe, not part of the passing regression suite.
+The same six cases now also run in the normal test-runtime.sh regression suite.
 
 | Case | Node | Jint 4.17.0 |
 | --- | --- | --- |
@@ -60,14 +60,37 @@ Compiler load was about 1.17 seconds; the tiny valid compilation took 6.44 secon
 and semantic rejection took 4.92 seconds in that desktop run. These are exploratory
 single-machine measurements, not a general performance benchmark.
 
-## Implications
+## Fix and validation
 
-Keep Jint 4.17.0 pinned for now, with this defect recorded. The existing generated
-player-code tests still pass, but they do not certify all JavaScript control flow.
-The same pattern can affect player code containing labeled while/do loops.
+[Jint 4.18.0](https://github.com/sebastienros/jint/releases/tag/v4.18.0)
+backports the labeled while/do continue fix and updates Acornima to 1.9.1.
+All three direct Jint references and their dependency locks now use 4.18.0.
+No source rewriting or compiler-host change is involved: V8 still compiles
+TypeScript, and Jint executes the emitted player program.
 
-An upstream fix or independently validated runtime is needed before relying on
-these constructs. No upstream issue/comment has been posted. Next compare an
-alternative embedded compiler host using the same semantic checks, or evaluate
-a verified upstream fix when available. Do not silently rewrite player programs
-or skip semantic checks to hide this failure.
+Before upgrading, the staged 4.17.0 assembly reproduced the three failures above.
+After upgrading, all six cases return 2. Runtime/mailbox/movement/stepping,
+computation-budget, runtime-popup, cancellation, dispatch, embedded compiler,
+compiler-worker and V8-to-Jint desktop checks pass. Both locked plugin builds
+pass without warnings/errors. The upgrade also contains other upstream fixes;
+these focused tests do not certify every JavaScript feature.
+
+Native Unity/Mono checks passed on CachyOS/Proton: the user confirms one flip
+after both labeled while and do/while, followed by normal patrol/harvesting and
+clean Stop without an error. To repeat the while check, restart and run:
+
+```typescript
+let count = 0;
+scan: while (count < 2) {
+  count++;
+  continue;
+}
+if (count === 2) {
+  doAFlip();
+}
+```
+
+Expect one flip: this verifies execution reaches the code after the loop.
+Follow with the do/while variant, then check normal farming and Stop. The
+original TypeScript-under-Jint compiler experiment has not been rerun; the
+production development path continues to use V8 for compilation.

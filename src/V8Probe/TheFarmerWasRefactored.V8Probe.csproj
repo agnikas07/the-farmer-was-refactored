@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Plugin/TheFarmerWasRefactored.Plugin.csproj" Private="false" />
-    <PackageReference Include="Jint" Version="4.17.0" />
+    <PackageReference Include="Jint" Version="4.18.0" />
     <PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1.1" />
     <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x64" Version="7.5.1.1" GeneratePathProperty="true" />
     <Reference Include="BepInEx">
