@@ -75,7 +75,9 @@ compiler-worker and V8-to-Jint desktop checks pass. Both locked plugin builds
 pass without warnings/errors. The upgrade also contains other upstream fixes;
 these focused tests do not certify every JavaScript feature.
 
-Native Unity/Mono validation is pending. Restart the development game and run:
+Native Unity/Mono checks passed on CachyOS/Proton: the user confirms one flip
+after both labeled while and do/while, followed by normal patrol/harvesting and
+clean Stop without an error. To repeat the while check, restart and run:
 
 ```typescript
 let count = 0;
