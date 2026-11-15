@@ -8,7 +8,7 @@
     <Compile Include="../../src/Runtime/CompilerDiagnosticException.cs" Link="CompilerDiagnosticException.cs" />
     <Compile Include="../../src/V8Probe/CompilerWorker.cs" Link="CompilerWorker.cs" />
     <Compile Include="../../src/V8Probe/ActionProgramCompiler.cs" Link="ActionProgramCompiler.cs" />
-    <PackageReference Include="Jint" Version="4.17.0" />
+    <PackageReference Include="Jint" Version="4.18.0" />
     <Compile Include="../../src/V8Probe/JintOutputChecks.cs" Link="JintOutputChecks.cs" />
     <Compile Include="../../src/V8Probe/CompilerChecks.cs" Link="CompilerChecks.cs" />
     <PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1.1" />
