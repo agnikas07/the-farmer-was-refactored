@@ -19,7 +19,12 @@ namespace TheFarmerWasRefactored.Runtime
         {
             if (options == null || index < 0 || index >= options.Count) return null;
             // Lookup by the actual sorted candidate, never by a fixed vocabulary index.
-            return options[index] switch
+            return HelpForWord(options[index]);
+        }
+
+        public static string HelpForWord(string word)
+        {
+            return word switch
             {
                 "doAFlip" => "doAFlip(): void\n\nFlip once. The next command waits for the flip's native action cost.\n\nExample: doAFlip();",
                 "canHarvest" => "canHarvest(): boolean\n\nReturns true when the entity under the drone is ready to harvest. This check does not collect it.\n\nExample: if (canHarvest()) { harvest(); }",
