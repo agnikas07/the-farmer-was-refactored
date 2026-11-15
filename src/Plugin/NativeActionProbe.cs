@@ -46,6 +46,7 @@ namespace TheFarmerWasRefactored
                 {
                     SourceEditorGuard.Install(harmony, allWindows);
                     TypeScriptCompletionPatch.Install(harmony);
+                    TypeScriptCodeHover.Install(harmony);
                     FirstTypeScriptLesson.Install(harmony, allWindows);
                     harmony.Patch(AccessTools.Method(typeof(CodeWindow), "StartExecution", new[] { typeof(bool) }),
                         prefix: new HarmonyMethod(typeof(NativeActionProbe), nameof(BeforeSourceRun)));
