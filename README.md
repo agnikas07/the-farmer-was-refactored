@@ -51,7 +51,7 @@ setup, supported behavior, and limits; this is not a general-purpose farming mod
 The first [TypeScript lesson](docs/in-game/first-program.md) replaces the in-game
 **First Program** page while source mode is enabled. Its introductory layout, navigation, and first example are verified in-game;
 The lesson now also introduces continuous harvesting and a two-tile patrol;
-those new sections await in-game verification. Other documentation remains untranslated.
+their rendering and the patrol with clean Stop are verified in-game. Other documentation remains untranslated.
 
 ## What's sprouted?
 

@@ -11,7 +11,10 @@ successful movement, blocked east, and blocked west. Tests interrupt continuous
 examples through a stub query after four visits; they do not verify native Stop
 or game movement costs. Existing runtime behavior is unchanged.
 
-Manual validation pending:
+Manual validation: the user confirms new-section rendering and the east/west
+patrol with harvesting and clean Stop under Unity/Proton on CachyOS. New examples
+are compiler-tested in both marker modes; marker-mode rendering has not been
+rechecked in-game for this extension. Reproduction/checklist:
 1. Restart and open First Program. Check the new sections render correctly.
 2. Run the patrol on the development grass farm: expect alternating east/west,
    ripe-only harvesting, and Stop without an error.
