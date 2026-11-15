@@ -24,27 +24,37 @@ This section supersedes historical snapshots below.
 | Execution | TypeScript 6.0.3 in ClearScript/V8 7.5.1.1 → Jint 4.18.0 → native actions | Development-only; computation timing is not gameplay parity |
 | Farm API | doAFlip, canHarvest, harvest, move and Direction | Native failed harvest/blocked move and unlock rejection not fully verified |
 | Loops | Continuous farming, Stop, runaway limit and recovery; labeled continue fixed | 10,000 statements between completed calls; per-run 8 MB allocation/recursion 64 limits |
-| Editor | Compiler/runtime popups, marker-free mode, static TS suggestions and API suggestion/code-hover help | Python highlighting/indentation; no semantic completion or exact runtime locations |
+| Editor | Compiler/runtime popups, marker-free mode, static TS suggestions, API suggestion/code-hover help, and regex TS coloring, `{}`/`()`/`[]`/quote auto-close & indent | No semantic completion, AST coloring, or exact runtime locations; search/IME/Python-mode coloring isolation desktop-tested only |
 | Teaching | First Program: grass harvest and two-tile patrol | Other pages remain native/Python |
 | Persistence | User confirms code survives exit/reload and patrol runs/stops again | Broader lifecycle transitions and races unverified |
 | Platforms | Windows game under Proton on CachyOS, Unity Mono | Native Windows/macOS/Linux unverified; no public package |
 
 ### Pick up here
 
-1. **Hover slice merged:** #40 adds code-text API help; the user confirms the
+1. **Editor coloring & indentation (`feat/typescript-editor-style`):** User
+   confirmed TypeScript syntax coloring, `{}`/`()`/`[]` and `"`, `'`, `` ` ``
+   auto-closing/overtyping, and `{|}`/`(|)`/`[|]` Enter expansion in-game under
+   Unity/Proton on CachyOS. Desktop runtime/V8/compiler checks pass (search
+   highlights, IME underlines, and Python-mode isolation were not separately
+   rechecked in-game). Ready for PR/review; see
+   [editor style design](docs/design/typescript-editor-style.md).
+2. **Hover slice merged:** #40 adds code-text API help; the user confirms the
    move signature/help appears after restart. Builds/runtime tests pass. Unknown-name
    suppression and Python-mode code-hover isolation were not separately rechecked.
    #41 refreshes README/handoff; both merges confirmed on GitHub.
-2. **Lifecycle PR #37 is closed without merging.** Its branch
+3. **Lifecycle PR #37 is closed without merging.** Its branch
    `fix/runtime-lifecycle-cleanup` is retained for reference. No lifecycle leak was
    demonstrated. Running windows cannot normally be closed; X after Stop asks to
    permanently delete the file. Esc is an overlay and continued execution is normal.
    Any future lifecycle fix needs actual save/scene call-path inspection, a
    reproduced stranded worker, and transition/recovery validation. Do not revive
    the speculative hooks solely because the teardown methods lack direct stop calls.
-3. Choose one small runtime/editor task. Priorities remain computation timing,
-   investigation of real lifecycle transitions, pause/step, TypeScript coloring
-   and indentation. Avoid broad API expansion until the runtime checkpoint is assessed.
+4. **Next slice candidate — computation timing (`Slice 2`):** Charge Jint
+   statement execution against `Simulation.operationOps` while keeping the
+   10,000-statement runaway limit, followed by pause/step execution (`Slice 3`).
+   Other priorities remain investigation of real lifecycle transitions and
+   editor improvements. Avoid broad API expansion until the runtime checkpoint
+   is assessed.
 
 ### Local testing and workflow
 
@@ -56,7 +66,7 @@ This section supersedes historical snapshots below.
 - User merges PRs; never merge for them. Keep changes small (ideally 200–400 lines).
   Give one manual check at a time and distinguish user reports from direct logs.
 - After switching branches, checkout and deployed binaries can differ. Current
-  deployed code is #40; rebuild/deploy intentionally, not just because of a switch.
+  deployed code is `feat/typescript-editor-style`; rebuild/deploy intentionally, not just because of a switch.
 - Build/deploy: `bash scripts/deploy-v8-probe.sh`. Desktop regression:
   `source scripts/dev-env.sh`, then
   `XDG_RUNTIME_DIR="$PWD/.tools/runtime" bash scripts/test-runtime.sh`.
@@ -193,7 +203,7 @@ These milestones are plans, not completed work or permission to merge/publish.
 | DEV-005 | Fixed invocation | `dotnet build --locked-mode` failed with an unknown switch. | Use `dotnet build -p:RestoreLockedMode=true` (or `dotnet restore --locked-mode`). | Locked build passed. |
 | RUN-001 | Fixed (#33–34 merged) | Valid continuous harvest loop stops after one harvest and repeated false queries; log reports maximum statements reached. | Replace per-run 100-statement cap and 30-second watchdog with tested cooperative budgets; expose runtime failures in the editor. Separate follow-up to movement. | Fresh game log confirms the original failure. Cooperative budget merged in #33; desktop and manual game checks pass. Runtime-error UI merged and verified in #34: budget/thrown-error popups, correction and Stop pass. |
 
-Remaining limitations include simulation-time accounting, real lifecycle transitions, source-mode pause/step, TypeScript coloring/indentation, and semantic completion. PR #37 is closed and unmerged; lifecycle cleanup remains an investigation, not a demonstrated bug fix.
+Remaining limitations include simulation-time accounting, real lifecycle transitions, source-mode pause/step, AST-level TypeScript coloring/formatting, and semantic completion. PR #37 is closed and unmerged; lifecycle cleanup remains an investigation, not a demonstrated bug fix.
 
 For each new issue, assign a stable ID and record reproduction/evidence, status, fix/workaround, and verification or remaining uncertainty. Never label a workaround as a root-cause fix.
 
@@ -340,3 +350,4 @@ superseded. Use the current snapshot and GitHub state when resuming.
 - PR #39 merge confirmed at 7fbc529. Branch feat/typescript-code-hover shares API help with code-text hover and bypasses Python help/value lookup only in TypeScript windows. Native hover positioning remains; this is static name-based help, not semantic symbol inspection. Locked builds/runtime checks pass; native hook/hover verification pending. Source/all-window mode enabled; lifecycle PR #37 remains excluded.
 
 - Final session handoff: user confirms move code-hover help works; GitHub confirms #40/#41 merged (main 3209bee). #37 closed without merging at user request with explanatory findings; remote branch retained. No code changes in this handoff update, no new tests required. Source/all-window config and deployed #40 binaries unchanged.
+- Branch `feat/typescript-editor-style` adds regex-based TypeScript syntax coloring (preserving search highlights and IME underlines), `{}`/`()`/`[]` and quote (`"`, `'`, `` ` ``) auto-closing/overtyping, and `{`/`(`/`[` newline indentation (including `{|}`/`(|)`/`[|]` expansion) in TypeScript code windows, keeping Python mode untouched. Compiler/runtime/V8 suites and locked builds pass, and the user confirmed coloring, `{}`/`()`/`[]`, quotes (`"`, `'`, `` ` ``), and Enter expansion in-game under Unity/Proton on CachyOS (search highlights, IME underlines, and Python-mode isolation covered on desktop only). Ready for review.
