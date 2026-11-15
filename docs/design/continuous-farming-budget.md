@@ -15,7 +15,7 @@ probes retain their original 100-statement / 30-second limits.
 
 A computation-only loop fails with an explicit computation-limit message in the
 BepInEx log. [Runtime-error popups](runtime-error-popups.md) now use the editor
-queue; native UI verification is pending.
+queue; budget and thrown-error display, recovery, and Stop are manually verified.
 
 ## Validation
 

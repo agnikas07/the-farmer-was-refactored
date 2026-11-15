@@ -22,7 +22,9 @@ actual Jint computation exhaustion and thrown errors, exception preservation,
 same-engine recovery, cancellation suppression, successful execution, bounded
 popup text, and preservation of compiler diagnostics.
 
-Manual Unity/Proton checks are pending:
+Manual Unity/Proton checks passed on CachyOS: screenshots confirm the budget
+and thrown-error popups; the user confirms correction/one-flip recovery and
+Stop without an error. Reproduction steps:
 1. Restart and run `while (true) {}`: expect a computation-limit popup.
 2. Replace it with `doAFlip();`: expect the popup to clear and one flip.
 3. Run `throw new Error("test failure");`: expect its message in the popup.

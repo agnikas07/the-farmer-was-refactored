@@ -80,8 +80,8 @@ launches overwrote their logs. All local diagnostic flags are now disabled.
 These checks do not establish every cancellation race or supported game state.
 
 The editor still uses Python highlighting, but TypeScript windows suppress native
-parser errors and show the first compiler error after Run. Jint runtime failures now use the same popup queue; native UI verification is
-pending, and exact runtime source locations are not yet available. Step mode is unsupported; use Run and Stop. The farm APIs are doAFlip,
+parser errors and show the first compiler error after Run. Jint runtime failures now use the same popup queue; budget/thrown-error popups, recovery, and Stop are manually verified. Exact
+runtime source locations are not yet available. Step mode is unsupported; use Run and Stop. The farm APIs are doAFlip,
 canHarvest, harvest, and move. Source is limited to 32,768 characters; Jint retains
 8 MB allocations and recursion 64. Source runs now use a 10,000-statement budget
 renewed after each completed farm call, without the fixed 30-second watchdog.
