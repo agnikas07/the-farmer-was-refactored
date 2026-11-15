@@ -23,7 +23,10 @@ Both locked plugin builds and runtime regression suites pass. Vocabulary checks
 cover supported names, exclusion of native/unsupported names, duplicate removal,
 fresh-list isolation and dot-context suppression.
 
-Manual checks pending:
+Manual checks passed by user confirmation under Unity/Proton on CachyOS:
+doAFlip/canHarvest suggestions and Tab insertion, dot suppression, native
+suggestions in unmarked marker mode, and TypeScript suggestions after adding
+the marker. Tooltip behavior was not separately inspected. Reproduction steps:
 1. Restart, type do in a TypeScript window: doAFlip should appear; do_a_flip,
    __name__, and Python and should not. Select doAFlip with arrows and Tab.
 2. Check canHarvest, harvest, move and const; dot completion should not expose
